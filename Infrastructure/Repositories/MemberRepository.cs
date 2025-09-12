@@ -1,0 +1,51 @@
+﻿using Application.IRepository;
+using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Infrastructure.Repositories
+{
+    public class MemberRepository:IMemberRepository
+    {
+        //TODO Implement Correctly after you apply Identity framework for Security
+        private readonly LibraryDbContext _context;
+
+        public MemberRepository(LibraryDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<Member> AddMemberAsync(Member member)
+        {
+            await _context.Members.AddAsync(member);
+            await _context.SaveChangesAsync();
+            return member;
+        }
+
+        public async Task<bool> CheckExistsAsync(int Id)
+        {
+            return await _context.Members.AnyAsync(m=>m.Id == Id);
+
+        }
+        public async Task<bool> CheckExistsAsync(string Email)
+        {
+            return await _context.Members.AnyAsync(m => m.Email == Email);
+        }
+        public async Task<Member?> GetMemberAsync(int Id)
+        {
+            return await _context.Members.FirstOrDefaultAsync(m => m.Id == Id);
+        }
+        public async Task<Member?> GetMemberAsync(string Email)
+        {
+            return await _context.Members.FirstOrDefaultAsync(m => m.Email == Email);
+        }
+        public async Task<ICollection<Member>> GetMembersAsync()
+        {
+            return await _context.Members.ToListAsync();
+        }
+    }
+}
