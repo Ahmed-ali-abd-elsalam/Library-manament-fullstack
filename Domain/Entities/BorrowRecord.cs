@@ -9,7 +9,7 @@ namespace Domain.Entities
     public class BorrowRecord
     {
         public int Id { get; set; }
-        public DateOnly BorrowDate { get; set; }
+        public DateOnly BorrowDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         public DateOnly? ReturnDate { get; set; }
         public required Book Book { get; set; }
         public int BookId { get; set; }

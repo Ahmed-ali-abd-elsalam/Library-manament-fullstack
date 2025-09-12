@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace Domain.Exceptions
 {
-    public class BookNotAvailableException : Exception
+    public class BookDoesnotExist : Exception
     {
-        public BookNotAvailableException()
+        public BookDoesnotExist()
         {
         }
 
-        public BookNotAvailableException(string? message) : base(message)
+        public BookDoesnotExist(string? message) : base(message)
         {
         }
 
-        public BookNotAvailableException(string? message, Exception? innerException) : base(message, innerException)
+        public BookDoesnotExist(string? message, Exception? innerException) : base(message, innerException)
         {
         }
     }
