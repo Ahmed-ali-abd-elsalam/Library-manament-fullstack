@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IRepository;
+using Application.IService;
 using Application.Mappers;
 using Domain.Entities;
 using Domain.Exceptions;
@@ -22,7 +23,6 @@ namespace Application.Services
         public async Task<BooksPaginatedDto> GetAllBooks(int offset, int pageSize)
         {
             int total = await _repository.GetTotalCountAsync();
-            Console.WriteLine("HELLO");
             var books = await _repository.GetBooksAsync(offset, pageSize);
             var booksDtos = new List<BookResponseDto>();
             foreach (var book in books)

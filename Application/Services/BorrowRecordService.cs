@@ -1,4 +1,7 @@
-﻿using Application.IRepository;
+﻿using Application.DTOs;
+using Application.IRepository;
+using Application.IService;
+using Application.Mappers;
 using Domain.Entities;
 using Domain.Exceptions;
 using System;
@@ -9,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class BorrowRecordService
+    public class BorrowRecordService : IBorrowRecordService
     {
         private readonly IBorrowRecordRepository _repository;
         private readonly IBookRepository _bookrepository;
@@ -23,7 +26,7 @@ namespace Application.Services
         }
 
         // Refactor this to be single responsiblity
-        public async Task<BorrowRecord?> BorrowBook(int bookID,int userId)
+        public async Task<BorrowRecordResponseDto> BorrowBook(int bookID,string userEmail)
         {
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);
             if (!bookExists) throw new BookDoesnotExist($"No Book Exists with this ID {bookID}");
@@ -32,26 +35,29 @@ namespace Application.Services
             Book book = await _bookrepository.GetBookAsync(bookID);
             book.IsAvailable = false;
             await _bookrepository.UpdateBookAsync(bookID, book);
-            Member user = await _memberrepository.GetMemberAsync(userId);
-            BorrowRecord borrowRecord = new BorrowRecord {
-                BookId = bookID ,
-                MemberId =userId,
+            Member user = await _memberrepository.GetMemberAsync(userEmail);
+            BorrowRecord borrowRecord =  await _repository.BorrowBookAsync(new BorrowRecord
+            {
+                BookId = bookID,
+                MemberId = user.Id,
                 Member = user,
-                Book=book,
-                BorrowDate=DateOnly.FromDateTime(DateTime.UtcNow)
-            };
-            return await _repository.BorrowBookAsync(borrowRecord);
+                Book = book,
+                BorrowDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            });
+            return borrowRecord.BorrowRecordtoDto();
         }
-        public async Task<BorrowRecord?> ReturnBook(int bookID,int userId)
+        public async Task<BorrowRecordResponseDto> ReturnBook(int bookID,string userEmail)
         {
-            bool recordExists = await _repository.CheckExistsAsync(bookID, userId);
-            if (!recordExists) return null;
-            BorrowRecord borrowRecord = await _repository.GetBorrowRecordAsync(bookID, userId);
+            Member user = await _memberrepository.GetMemberAsync (userEmail);
+            bool recordExists = await _repository.CheckExistsAsync(bookID, user.Id);
+            if (!recordExists) throw new RecordDoesnotExist($"this user {userEmail} did not borrow this book {bookID}");
+            BorrowRecord borrowRecord = await _repository.GetBorrowRecordAsync(bookID, user.Id);
+            if (borrowRecord.ReturnDate != null) return null;
             Book book = await _bookrepository.GetBookAsync(bookID);
             book.IsAvailable = true;
             await _bookrepository.UpdateBookAsync(bookID, book);
-            return await _repository.ReturnBookAsync(borrowRecord.Id,DateOnly.FromDateTime(DateTime.UtcNow));
-
+            borrowRecord =  await _repository.ReturnBookAsync(borrowRecord.Id,DateOnly.FromDateTime(DateTime.UtcNow));
+            return borrowRecord.BorrowRecordtoDto();
 
         }
     }

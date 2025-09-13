@@ -1,7 +1,9 @@
 ﻿using Application.DTOs;
 using Application.IRepository;
+using Application.IService;
 using Application.Mappers;
 using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class MemberService
+    public class MemberService : IMemberService
     {
         private readonly IMemberRepository _repository;
 
@@ -33,7 +35,8 @@ namespace Application.Services
         public async Task<MemberResponseDto> AddMember(RegisterMemberDto memberDto)
         {
             Member member = memberDto.RegisterDtoToMember();
-            // TODO Hash Password
+            var hashedPassword = new PasswordHasher<Member>().HashPassword(member,memberDto.Password);
+            member.HashedPassword = hashedPassword;
             await _repository.AddMemberAsync(member);
             return member.ToMemberResponseDto();
         }
