@@ -23,6 +23,7 @@ namespace Application.Mappers
         {
             return new MemberResponseDto
             {
+                Id = member.Id,
                 Email = member.Email,
                 Role = member.Role,
                 Name = member.Name,
