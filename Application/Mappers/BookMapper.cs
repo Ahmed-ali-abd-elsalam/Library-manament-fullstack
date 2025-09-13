@@ -24,6 +24,7 @@ namespace Application.Mappers
         {
             return new BookResponseDto
             {
+                Id = book.Id,
                 Author = book.Author,
                 Title = book.Title,
                 PublishedYear = book.PublishedYear,

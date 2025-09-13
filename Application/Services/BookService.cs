@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class BookService
+    public class BookService :IBookService
     {
         private readonly IBookRepository _repository;
 
@@ -22,15 +22,21 @@ namespace Application.Services
         public async Task<BooksPaginatedDto> GetAllBooks(int offset, int pageSize)
         {
             int total = await _repository.GetTotalCountAsync();
+            Console.WriteLine("HELLO");
             var books = await _repository.GetBooksAsync(offset, pageSize);
             var booksDtos = new List<BookResponseDto>();
             foreach (var book in books)
             {
                 booksDtos.Add(book.BookToDtoMapper());
             }
-            bool HasNext = offset * pageSize < total;
+            bool HasNext = offset+1 * pageSize < total;
             bool HasPrev = offset > 0;
-            return new BooksPaginatedDto { Books = booksDtos, Total = total, HasNext = HasNext, HasPrev = HasPrev, Offset = offset, pageSize = pageSize };
+            return new BooksPaginatedDto { Books = booksDtos,
+                Total = total,
+                HasNext = HasNext,
+                HasPrev = HasPrev,
+                Offset = offset,
+                pageSize = pageSize };
         }
         public async Task<BookResponseDto> AddNewBook(BookDto bookDto)
         {
