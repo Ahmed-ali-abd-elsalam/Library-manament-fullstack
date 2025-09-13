@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
-using Application.Services;
+using Application.IService;
 using Domain.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/[Controller]")]
-    public class BooksController :Controller
+    public class BooksController :ControllerBase
     {
         private readonly IBookService _bookService;
 
@@ -24,15 +25,18 @@ namespace Presentation.Controllers
             return Ok(await _bookService.GetAllBooks(offest, count));
         }
         [HttpPost]
+        [Authorize(Roles ="Admin")]
         [ProducesResponseType(statusCode: 200,type: typeof(BookResponseDto))]
         public async Task<IActionResult> AddBook(BookDto bookDto)
         {
+            if(!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(await _bookService.AddNewBook(bookDto));
         }
         [HttpPut("api/Books/{BookId}")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> UpdateBook(int BookId,BookDto bookDto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var book =await _bookService.UpdateBook(bookDto,BookId);
             if (book == null) return NotFound();
             return Ok(book);
