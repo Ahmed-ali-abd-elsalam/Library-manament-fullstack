@@ -19,17 +19,19 @@ namespace Infrastructure.Data
         public DbSet<BorrowRecord> BorrowRecords { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Member>()
+            .HasIndex(m => m.Email)
+            .IsUnique();
+
             modelBuilder.Entity<Book>()
                 .HasMany(B => B.BorrowRecords)
                 .WithOne(Br => Br.Book)
-                .HasForeignKey(Br => Br.BookId)
-                .IsRequired();
+                .HasForeignKey(Br => Br.BookId);
 
             modelBuilder.Entity<Member>()
                 .HasMany(M => M.BorrowRecords)
                 .WithOne(Br => Br.Member)
-                .HasForeignKey(Br => Br.MemberId)
-                .IsRequired();
+                .HasForeignKey(Br => Br.MemberId);
         }
     }
 }

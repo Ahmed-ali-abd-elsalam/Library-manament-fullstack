@@ -49,7 +49,7 @@ namespace Infrastructure.Repositories
 
         public async Task<ICollection<Book>> GetBooksAsync(int offset, int pagesize)
         {
-            return await _context.Books.OrderBy(b=>b.Id).Skip((offset-1)*pagesize).Take(pagesize).ToListAsync();
+            return await _context.Books.OrderBy(b=>b.Id).Skip(offset*pagesize).Take(pagesize).ToListAsync();
         }
 
         public async Task<int> GetTotalCountAsync()

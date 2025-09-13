@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
 
         public async Task<BorrowRecord?> GetBorrowRecordAsync(int bookId,int UserId)
         {
-            return await _context.BorrowRecords.FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == UserId);   
+            return await _context.BorrowRecords.OrderByDescending(Br=>Br.ReturnDate).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == UserId);   
         }
 
         public async Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync()
