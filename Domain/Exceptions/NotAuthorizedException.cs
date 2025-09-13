@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace Domain.Exceptions
 {
-    public class NotAuthorizedException : Exception
+    public class RecordDoesnotExist : Exception
     {
-        public NotAuthorizedException()
+        public RecordDoesnotExist()
         {
         }
 
-        public NotAuthorizedException(string? message) : base(message)
+        public RecordDoesnotExist(string? message) : base(message)
         {
         }
 
-        public NotAuthorizedException(string? message, Exception? innerException) : base(message, innerException)
+        public RecordDoesnotExist(string? message, Exception? innerException) : base(message, innerException)
         {
         }
 

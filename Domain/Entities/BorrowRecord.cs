@@ -11,9 +11,9 @@ namespace Domain.Entities
         public int Id { get; set; }
         public DateOnly BorrowDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         public DateOnly? ReturnDate { get; set; }
-        public required Book Book { get; set; }
+        public Book Book { get; set; }
         public int BookId { get; set; }
-        public required Member Member { get; set; }
+        public Member Member { get; set; }
         public int MemberId { get; set; }
     }
 }
