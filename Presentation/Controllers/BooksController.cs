@@ -32,7 +32,7 @@ namespace Presentation.Controllers
             if(!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(await _bookService.AddNewBook(bookDto));
         }
-        [HttpPut("api/Books/{BookId}")]
+        [HttpPut("{BookId}")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> UpdateBook(int BookId,BookDto bookDto)
         {
@@ -41,7 +41,7 @@ namespace Presentation.Controllers
             if (book == null) return NotFound();
             return Ok(book);
         }
-        [HttpDelete("api/Books/{BookId}")]
+        [HttpDelete("{BookId}")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> Delete(int BookId)
         {
