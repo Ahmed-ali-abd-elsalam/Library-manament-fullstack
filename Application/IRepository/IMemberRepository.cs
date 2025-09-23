@@ -9,11 +9,11 @@ namespace Application.IRepository
 {
     public interface IMemberRepository
     {
-        public Task<bool> CheckExistsAsync(int Id);
-        public Task<bool> CheckExistsAsync(string Email);
+        public Task<bool> CheckExistsAsyncById(string Id);
+        public Task<bool> CheckExistsAsyncByEmail(string Email);
         public Task<ICollection<Member>> GetMembersAsync();
-        public Task<Member?> GetMemberAsync(int Id);
-        public Task<Member?> GetMemberAsync(string Email);
+        public Task<Member?> GetMemberAsyncById(string Id);
+        public Task<Member?> GetMemberAsyncByEmail(string Email);
 
         public Task<Member> AddMemberAsync(Member member);
     }

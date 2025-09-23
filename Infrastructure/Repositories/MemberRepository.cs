@@ -27,20 +27,20 @@ namespace Infrastructure.Repositories
             return member;
         }
 
-        public async Task<bool> CheckExistsAsync(int Id)
+        public async Task<bool> CheckExistsAsyncById(string Id)
         {
             return await _context.Members.AnyAsync(m=>m.Id == Id);
 
         }
-        public async Task<bool> CheckExistsAsync(string Email)
+        public async Task<bool> CheckExistsAsyncByEmail(string Email)
         {
             return await _context.Members.AnyAsync(m => m.Email == Email);
         }
-        public async Task<Member?> GetMemberAsync(int Id)
+        public async Task<Member?> GetMemberAsyncById(string Id)
         {
             return await _context.Members.FirstOrDefaultAsync(m => m.Id == Id);
         }
-        public async Task<Member?> GetMemberAsync(string Email)
+        public async Task<Member?> GetMemberAsyncByEmail(string Email)
         {
             return await _context.Members.FirstOrDefaultAsync(m => m.Email == Email);
         }

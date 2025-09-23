@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 namespace Presentation.Controllers
 {
     [Controller]
-    [Route("api/[Controller")]
     public class BorrowBookController : ControllerBase
     {
         private readonly IBorrowRecordService borrowRecordService;

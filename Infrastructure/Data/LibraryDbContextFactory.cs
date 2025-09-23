@@ -17,10 +17,11 @@ namespace Infrastructure.Data
             IConfigurationRoot configuration = new ConfigurationBuilder()
                             .SetBasePath(Directory.GetCurrentDirectory()) // points to startup project
                             .AddJsonFile("appsettings.json")
+                            .AddUserSecrets<LibraryDbContextFactory>(optional: true)
                             .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<LibraryDbContext>();
-            optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+            optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection").Replace("DBPassword", configuration["DBPassword"]));
 
             return new LibraryDbContext(optionsBuilder.Options);
         }

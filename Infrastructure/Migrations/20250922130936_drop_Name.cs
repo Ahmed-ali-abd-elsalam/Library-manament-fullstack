@@ -5,24 +5,25 @@
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class uniqueEmail : Migration
+    public partial class drop_Name : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateIndex(
-                name: "IX_Members_Email",
-                table: "Members",
-                column: "Email",
-                unique: true);
+            migrationBuilder.DropColumn(
+                name: "Name",
+                table: "AspNetUsers");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_Members_Email",
-                table: "Members");
+            migrationBuilder.AddColumn<string>(
+                name: "Name",
+                table: "AspNetUsers",
+                type: "text",
+                nullable: false,
+                defaultValue: "");
         }
     }
 }

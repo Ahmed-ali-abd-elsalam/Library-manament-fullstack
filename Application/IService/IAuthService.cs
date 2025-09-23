@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,6 @@ namespace Application.IService
     {
         Task<string> Login(LoginMemberDto loginMemberDto);
         Task<MemberResponseDto> Signup(RegisterMemberDto registerMemberDto);
-        string createToken(Member member);
+        string createToken(Member member,IList<string> roles);
     }
 }

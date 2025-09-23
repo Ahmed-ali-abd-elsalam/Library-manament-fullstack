@@ -16,10 +16,7 @@ namespace Application.DTOs
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
         [Required]
-        [MinLength(8)]
+        [MinLength(12)]
         public string Password { get; set; } = string.Empty;
-        [Required]
-        [AllowedValues(["Admin","Member"],ErrorMessage ="that value is not allowed only Member or Admin")]
-        public string Role { get; set; } = string.Empty;
     }
 }

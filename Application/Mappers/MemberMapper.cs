@@ -14,9 +14,7 @@ namespace Application.Mappers
         {
             return new Member {
                 Email = memberDto.Email ,
-                HashedPassword = memberDto.Password,
-                Name =memberDto.Name,
-                Role = memberDto.Role,
+                UserName =memberDto.Name,
                 JoinDate=DateOnly.FromDateTime(DateTime.UtcNow)};
         }
         public static MemberResponseDto ToMemberResponseDto(this Member member)
@@ -25,8 +23,7 @@ namespace Application.Mappers
             {
                 Id = member.Id,
                 Email = member.Email,
-                Role = member.Role,
-                Name = member.Name,
+                Name = member.UserName,
             };
         }
     }

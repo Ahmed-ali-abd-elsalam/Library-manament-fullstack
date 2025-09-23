@@ -18,25 +18,31 @@ namespace Application.Services
 {
     public class AuthService : IAuthService 
     {
-        private readonly IMemberRepository memberRepository;
+        //private readonly IMemberRepository memberRepository;
+        private readonly UserManager<Member> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+
         private readonly IConfiguration configuration;
 
-        public AuthService(IMemberRepository memberRepository, IConfiguration confguration)
+        public AuthService(UserManager<Member> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
         {
-            this.memberRepository = memberRepository;
-            this.configuration = confguration;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            this.configuration = configuration;
         }
 
-        public string createToken(Member member)
+        public string createToken(Member member,IList<string> roles)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name , member.Name),
                 new Claim(ClaimTypes.Email , member.Email),
-                new Claim(ClaimTypes.Role , member.Role)
             };
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")));
+                Encoding.UTF8.GetBytes(configuration["tokensecret"]));
             var creds = new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new JwtSecurityToken
             (
@@ -52,20 +58,31 @@ namespace Application.Services
 
         public async Task<string> Login(LoginMemberDto loginMemberDto)
         {
-            if (!await memberRepository.CheckExistsAsync(loginMemberDto.Email)) return null;
-            Member member = await memberRepository.GetMemberAsync(loginMemberDto.Email);
-            if (new PasswordHasher<Member>().VerifyHashedPassword(member, member.HashedPassword, loginMemberDto.Password)
-                == PasswordVerificationResult.Failed) return null;
-            return createToken(member);
+            Member user = await _userManager.FindByEmailAsync(loginMemberDto.Email);
+            if (user == null) return null;
+            var result = await _userManager.CheckPasswordAsync(user, loginMemberDto.Password);
+            if (result == false) return null;
+            var userRoles = await _userManager.GetRolesAsync(user);
+            return createToken(user,userRoles);
         }
 
         public async Task<MemberResponseDto> Signup(RegisterMemberDto registerMemberDto)
         {
-            if (await memberRepository.CheckExistsAsync(registerMemberDto.Email)) return null;
+
+            Member user = await _userManager.FindByEmailAsync(registerMemberDto.Email);
+            if (user != null) return null;
             Member member = registerMemberDto.RegisterDtoToMember();
-            member.HashedPassword = new PasswordHasher<Member>().HashPassword(member, registerMemberDto.Password);
-            memberRepository.AddMemberAsync(member);
-            return member.ToMemberResponseDto();
+            var result = await _userManager.CreateAsync(member, registerMemberDto.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(member, "Member");
+                return member.ToMemberResponseDto();
+            }
+            else
+            {
+                Console.WriteLine(result.Errors);
+                return null;
+            }
 
         }
     }

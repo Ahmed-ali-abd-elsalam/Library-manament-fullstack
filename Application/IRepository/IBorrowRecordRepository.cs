@@ -9,8 +9,8 @@ namespace Application.IRepository
 {
     public interface IBorrowRecordRepository
     {
-        Task<bool> CheckExistsAsync(int bookId, int UserId);
-        Task<BorrowRecord?> GetBorrowRecordAsync(int bookId, int UserId);
+        Task<bool> CheckExistsAsync(int bookId, string UserId);
+        Task<BorrowRecord?> GetBorrowRecordAsync(int bookId, string UserId);
         Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync();
         Task<BorrowRecord> BorrowBookAsync(BorrowRecord borrowRecord);
         Task<BorrowRecord> ReturnBookAsync(int borrowRecordId, DateOnly returnDate);

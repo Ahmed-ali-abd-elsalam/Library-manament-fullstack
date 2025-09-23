@@ -20,8 +20,8 @@ namespace Presentation.Controllers
         public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto) {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             string memberResponse = await authService.Login(loginMemberDto);
-            if (memberResponse == null) return BadRequest("Wrong Username or Passwrd");
-            return Ok(memberResponse);
+            if (memberResponse == null) return BadRequest("Wrong Username or Password");
+            return Ok(new {response_Token= memberResponse });
         }
         [HttpPost]
         [Route("api/register")]

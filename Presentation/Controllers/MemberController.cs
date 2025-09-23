@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Presentation.Controllers
 {
     [Controller]
-    [Route("api/[Controller]")]
+    [Route("api/members/")]
     public class MemberController :ControllerBase
     {
         private readonly IMemberService memberService;

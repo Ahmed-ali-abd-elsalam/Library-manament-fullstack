@@ -25,7 +25,6 @@ namespace Application.Services
             _memberrepository = memberrepository;
         }
 
-        // Refactor this to be single responsiblity
         public async Task<BorrowRecordResponseDto> BorrowBook(int bookID,string userEmail)
         {
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);
@@ -35,7 +34,7 @@ namespace Application.Services
             Book book = await _bookrepository.GetBookAsync(bookID);
             book.IsAvailable = false;
             await _bookrepository.UpdateBookAsync(bookID, book);
-            Member user = await _memberrepository.GetMemberAsync(userEmail);
+            Member user = await _memberrepository.GetMemberAsyncByEmail(userEmail);
             BorrowRecord borrowRecord =  await _repository.BorrowBookAsync(new BorrowRecord
             {
                 BookId = bookID,
@@ -48,7 +47,7 @@ namespace Application.Services
         }
         public async Task<BorrowRecordResponseDto> ReturnBook(int bookID,string userEmail)
         {
-            Member user = await _memberrepository.GetMemberAsync (userEmail);
+            Member user = await _memberrepository.GetMemberAsyncByEmail(userEmail);
             bool recordExists = await _repository.CheckExistsAsync(bookID, user.Id);
             if (!recordExists) throw new RecordDoesnotExist($"this user {userEmail} did not borrow this book {bookID}");
             BorrowRecord borrowRecord = await _repository.GetBorrowRecordAsync(bookID, user.Id);
