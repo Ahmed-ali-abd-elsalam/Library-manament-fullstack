@@ -5,6 +5,7 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +18,15 @@ string DBpassword = builder.Configuration["DBPassword"];
 string tokenSecret = builder.Configuration["tokensecret"];
 
 builder.Services.AddControllers();
+builder.Services.AddRequestTimeouts(options =>
+{
+    options.DefaultPolicy = new RequestTimeoutPolicy
+    {
+        Timeout = TimeSpan.FromMilliseconds(5000),
+        TimeoutStatusCode = 408
+    };
+});
+
 builder.Services.AddDbContext<LibraryDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection").Replace("DBPassword",DBpassword)));
 builder.Services.AddIdentity<Member, IdentityRole>(options =>
 {
@@ -68,6 +78,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseRequestTimeouts();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

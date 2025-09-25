@@ -11,8 +11,10 @@ namespace Application.IService
 {
     public interface IAuthService
     {
-        Task<string> Login(LoginMemberDto loginMemberDto);
+        Task<LoginResponseDto> refresh(string userEmail, string refreshToken);
+
+        Task<LoginResponseDto> Login(LoginMemberDto loginMemberDto);
         Task<MemberResponseDto> Signup(RegisterMemberDto registerMemberDto);
-        string createToken(Member member,IList<string> roles);
+        string createToken(Member member,IList<string> roles,string Mode);
     }
 }

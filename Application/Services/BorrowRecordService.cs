@@ -14,6 +14,7 @@ namespace Application.Services
 {
     public class BorrowRecordService : IBorrowRecordService
     {
+        //TODO import more than one interface and check for member and book in borrow record this breaks single responsibility?
         private readonly IBorrowRecordRepository _repository;
         private readonly IBookRepository _bookrepository;
         private readonly IMemberRepository _memberrepository;
@@ -25,6 +26,7 @@ namespace Application.Services
             _memberrepository = memberrepository;
         }
 
+        //TODO should i check for email in the token if it exists?
         public async Task<BorrowRecordResponseDto> BorrowBook(int bookID,string userEmail)
         {
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);
