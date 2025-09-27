@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(LibraryDbContext))]
-    partial class LibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250925113802_userTokens")]
+    partial class userTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,10 +163,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("source")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("token")
                         .IsRequired()
                         .HasColumnType("text");
@@ -172,7 +171,10 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("userId")
+                    b.Property<int>("userId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("userId1")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -182,7 +184,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("userEmail");
 
-                    b.HasIndex("userId");
+                    b.HasIndex("userId1");
 
                     b.ToTable("UserTokens");
                 });
@@ -342,7 +344,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.Entities.Member", "user")
                         .WithMany()
-                        .HasForeignKey("userId")
+                        .HasForeignKey("userId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

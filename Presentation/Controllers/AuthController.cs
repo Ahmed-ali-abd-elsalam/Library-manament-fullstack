@@ -23,13 +23,14 @@ namespace Presentation.Controllers
         [Route("api/login")]
         public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto) {
             if(!ModelState.IsValid) return BadRequest(ModelState);
-            var memberResponse = await authService.Login(loginMemberDto);
+            string source = HttpContext.Request.Headers["User-Agent"];
+            var memberResponse = await authService.Login(loginMemberDto,source);
             if (memberResponse == null) return BadRequest("Wrong Username or Password");
             return Ok(memberResponse);
         }
         [HttpPost]
         [Route("api/register")]
-        public async Task<IActionResult> Regiser([FromBody] RegisterMemberDto registerMemberDto)
+        public async Task<IActionResult> Register([FromBody] RegisterMemberDto registerMemberDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             MemberResponseDto memberResponse = await authService.Signup(registerMemberDto);
@@ -42,17 +43,31 @@ namespace Presentation.Controllers
                 await Task.Delay(8000,ct);
                 return Ok();
         }
+        [HttpDelete]
+        [Authorize]
+        [Route("api/logout")]
+        public async Task<IActionResult> Logout()
+        {
+            string email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (email == null) return BadRequest("Invalid Token");
+            string authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault()!;
+            string token = authHeader.Substring("Bearer ".Length).Trim();
+            bool result = await authService.logOutAsync(email, token);
+            if (!result) return BadRequest("User Not Found/Invalid Token");
+            return Ok("Logged Out Successfully");
+        }
 
         [HttpPost]
         [Authorize]
         [Route("api/refresh")]
         public async Task<IActionResult> refresh()
         {
+            string source = HttpContext.Request.Headers["User-Agent"];
             var user = User.Claims.FirstOrDefault(ct => ct.Type == ClaimTypes.Email);
             if (user == null) return BadRequest("refresh token is invalid");
             var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
             string token = authHeader.Substring("Bearer ".Length).Trim();
-            var ResponseDto = await authService.refresh(user.Value,token);
+            var ResponseDto = await authService.refresh(user.Value,token,source);
             if (ResponseDto == null) return BadRequest("that user doesn't exist");
             return Ok(ResponseDto);
         }
