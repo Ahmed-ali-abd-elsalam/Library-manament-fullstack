@@ -38,10 +38,10 @@ namespace Application.Services
             if (result == false) return null;
             var userRoles = await _userManager.GetRolesAsync(user);
             string Response_Token =await tokenService.getUserTokenAsync(user.Email, source);
-            if (Response_Token == null) Response_Token = tokenService.createTokenAsync(user, userRoles, "Response Token", source);
+            if (Response_Token == null) Response_Token = await tokenService.createTokenAsync(user, userRoles, "Response Token", source);
             return new LoginResponseDto {Email= loginMemberDto.Email,
                 Response_Token = Response_Token,
-                Refresh_token = tokenService.createTokenAsync(user,userRoles, "Refresh Token",source)
+                Refresh_token =await tokenService.createTokenAsync(user,userRoles, "Refresh Token",source)
             };
         }
         public async Task<LoginResponseDto> refresh(string userEmail,string RefreshToken,string source)
@@ -52,7 +52,7 @@ namespace Application.Services
             return new LoginResponseDto
             {
                 Email = userEmail,
-                Response_Token = tokenService.createTokenAsync(user, userRoles, "Response Token",source),
+                Response_Token = await tokenService.createTokenAsync(user, userRoles, "Response Token",source),
                 Refresh_token = RefreshToken
             };
 

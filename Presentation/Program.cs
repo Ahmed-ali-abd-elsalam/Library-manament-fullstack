@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Presentation.MiddleWares;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,7 +67,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
 using(var scope = app.Services.CreateScope())
@@ -87,8 +87,8 @@ app.UseRequestTimeouts();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseTokenMiddleware();
 
 
 app.MapControllers();
-
 app.Run();
