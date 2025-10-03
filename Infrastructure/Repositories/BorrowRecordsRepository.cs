@@ -19,12 +19,12 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
-        public async Task<bool> CheckExistsAsync(int bookId,int UserId)
+        public async Task<bool> CheckExistsAsync(int bookId,string UserId)
         {
             return await _context.BorrowRecords.AnyAsync(BR=>BR.BookId == bookId && BR.MemberId==UserId);   
         }
 
-        public async Task<BorrowRecord?> GetBorrowRecordAsync(int bookId,int UserId)
+        public async Task<BorrowRecord?> GetBorrowRecordAsync(int bookId,string UserId)
         {
             return await _context.BorrowRecords.OrderByDescending(Br=>Br.ReturnDate).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == UserId);   
         }

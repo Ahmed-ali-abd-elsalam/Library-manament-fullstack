@@ -15,10 +15,12 @@ namespace Application.Services
     public class MemberService : IMemberService
     {
         private readonly IMemberRepository _repository;
+        private readonly UserManager<Member> _userManager;
 
-        public MemberService(IMemberRepository repository)
+        public MemberService(IMemberRepository repository, UserManager<Member> userManager)
         {
             _repository = repository;
+            _userManager = userManager;
         }
 
         public async Task<ICollection<MemberResponseDto>> GetMembers()
@@ -34,11 +36,20 @@ namespace Application.Services
         
         public async Task<MemberResponseDto> AddMember(RegisterMemberDto memberDto)
         {
+
+            if (await _userManager.FindByEmailAsync(memberDto.Email) != null) return null;
             Member member = memberDto.RegisterDtoToMember();
-            var hashedPassword = new PasswordHasher<Member>().HashPassword(member,memberDto.Password);
-            member.HashedPassword = hashedPassword;
-            await _repository.AddMemberAsync(member);
+            var result = await _userManager.CreateAsync(member, memberDto.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(member, "Member");
             return member.ToMemberResponseDto();
+            }
+            else
+            {
+                Console.WriteLine(result.Errors);
+                return null;
+            }
         }
 
 

@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 namespace Presentation.Controllers
 {
     [ApiController]
-    [Route("api/[Controller]")]
-    public class BooksController :ControllerBase
+    [Route("api/books/")]
+    public class BooksController : ControllerBase
     {
         private readonly IBookService _bookService;
 
@@ -19,19 +19,22 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(statusCode: 200,type: typeof(BooksPaginatedDto))]
-        public async Task<IActionResult> getBooks(int offest=0,int count=100)
+        [ProducesResponseType(statusCode: 200, type: typeof(BooksPaginatedDto))]
+        public async Task<IActionResult> getBooks(int offest = 0, int count = 100)
         {
             return Ok(await _bookService.GetAllBooks(offest, count));
         }
-        [HttpPost]
-        [Authorize(Roles ="Admin")]
+
+        [HttpPost("/api/books/add")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(statusCode: 200,type: typeof(BookResponseDto))]
-        public async Task<IActionResult> AddBook(BookDto bookDto)
+        public async Task<IActionResult> AddBook([FromBody]BookDto bookDto)
+
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             return Ok(await _bookService.AddNewBook(bookDto));
         }
+        
         [HttpPut("{BookId}")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> UpdateBook(int BookId,BookDto bookDto)
@@ -41,6 +44,7 @@ namespace Presentation.Controllers
             if (book == null) return NotFound();
             return Ok(book);
         }
+        
         [HttpDelete("{BookId}")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> Delete(int BookId)

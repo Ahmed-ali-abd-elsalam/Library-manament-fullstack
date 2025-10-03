@@ -12,7 +12,7 @@ namespace Application.DTOs
         public DateOnly BorrowDate { get; set; }
         public DateOnly? ReturnDate { get; set; }
         public int BookId { get; set; }
-        public int MemberId { get; set; }
+        public string MemberId { get; set; }
 
     }
 }

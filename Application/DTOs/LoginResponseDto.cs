@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public record MemberResponseDto
+    public record LoginResponseDto
     {
-        public string Id { get; set; }
         public string Email { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public string Response_Token { get; set; } = string.Empty;
+        public string Refresh_token { get; set; } = string.Empty;
     }
 }

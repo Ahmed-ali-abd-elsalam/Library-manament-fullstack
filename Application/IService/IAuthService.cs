@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,10 @@ namespace Application.IService
 {
     public interface IAuthService
     {
-        Task<string> Login(LoginMemberDto loginMemberDto);
+        Task<LoginResponseDto> refresh(string userEmail, string refreshToken,string source,CancellationToken cancellationToken);
+        Task<LoginResponseDto> Login(LoginMemberDto loginMemberDto,string source,CancellationToken cancellationToken);
         Task<MemberResponseDto> Signup(RegisterMemberDto registerMemberDto);
-        string createToken(Member member);
+        public Task<bool> logOutAsync(string email, string source,CancellationToken cancellationToken);
+
     }
 }
