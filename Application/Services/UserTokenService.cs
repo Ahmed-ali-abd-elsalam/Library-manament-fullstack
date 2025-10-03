@@ -90,19 +90,19 @@ namespace Application.Services
                 );
             }
             string Token = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
-            if(mode == "Response Token")
-            {
-                UserToken userToken = new UserToken
-                {
-                    token = Token,
-                    source = source,
-                    userEmail = member.Email,
-                    user = member,
-                    userId = member.Id,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(30),
-                };
-                await _repository.createUserTokenAsync(userToken);
-            }
+            //if(mode == "Response Token")
+            //{
+            //    UserToken userToken = new UserToken
+            //    {
+            //        token = Token,
+            //        source = source,
+            //        userEmail = member.Email,
+            //        user = member,
+            //        userId = member.Id,
+            //        ExpiresAt = DateTime.UtcNow.AddMinutes(30),
+            //    };
+            //    await _repository.createUserTokenAsync(userToken);
+            //}
             return Token;
         }
 

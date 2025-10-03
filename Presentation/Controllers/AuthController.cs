@@ -21,10 +21,10 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [Route("api/login")]
-        public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto) {
+        public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto,CancellationToken cancellationToken) {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             string source = HttpContext.Request.Headers["User-Agent"];
-            var memberResponse = await authService.Login(loginMemberDto,source);
+            var memberResponse = await authService.Login(loginMemberDto,source,cancellationToken);
             if (memberResponse == null) return BadRequest("Wrong Username or Password");
             return Ok(memberResponse);
         }
@@ -46,13 +46,12 @@ namespace Presentation.Controllers
         [HttpDelete]
         [Authorize]
         [Route("api/logout")]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(CancellationToken cancellationToken)
         {
             string email = User.FindFirst(ClaimTypes.Email)?.Value;
             if (email == null) return BadRequest("Invalid Token");
-            string authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault()!;
-            string token = authHeader.Substring("Bearer ".Length).Trim();
-            bool result = await authService.logOutAsync(email, token);
+            string source= HttpContext.Request.Headers["User-Agent"];
+            bool result = await authService.logOutAsync(email,source ,cancellationToken);
             if (!result) return BadRequest("User Not Found/Invalid Token");
             return Ok("Logged Out Successfully");
         }
@@ -60,14 +59,14 @@ namespace Presentation.Controllers
         [HttpPost]
         [Authorize]
         [Route("api/refresh")]
-        public async Task<IActionResult> refresh()
+        public async Task<IActionResult> refresh(CancellationToken cancellationToken)
         {
             string source = HttpContext.Request.Headers["User-Agent"];
             var user = User.Claims.FirstOrDefault(ct => ct.Type == ClaimTypes.Email);
             if (user == null) return BadRequest("refresh token is invalid");
             var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
             string token = authHeader.Substring("Bearer ".Length).Trim();
-            var ResponseDto = await authService.refresh(user.Value,token,source);
+            var ResponseDto = await authService.refresh(user.Value,token,source,cancellationToken);
             if (ResponseDto == null) return BadRequest("that user doesn't exist");
             return Ok(ResponseDto);
         }

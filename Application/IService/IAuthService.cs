@@ -11,10 +11,10 @@ namespace Application.IService
 {
     public interface IAuthService
     {
-        Task<LoginResponseDto> refresh(string userEmail, string refreshToken,string source);
-        Task<LoginResponseDto> Login(LoginMemberDto loginMemberDto,string source);
+        Task<LoginResponseDto> refresh(string userEmail, string refreshToken,string source,CancellationToken cancellationToken);
+        Task<LoginResponseDto> Login(LoginMemberDto loginMemberDto,string source,CancellationToken cancellationToken);
         Task<MemberResponseDto> Signup(RegisterMemberDto registerMemberDto);
-        public Task<bool> logOutAsync(string email, string token);
+        public Task<bool> logOutAsync(string email, string source,CancellationToken cancellationToken);
 
     }
 }

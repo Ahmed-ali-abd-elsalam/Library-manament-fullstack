@@ -28,6 +28,11 @@ builder.Services.AddRequestTimeouts(options =>
     };
 });
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+    options.InstanceName = "LibraryTokenRevoke";
+});
 builder.Services.AddDbContext<LibraryDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection").Replace("DBPassword",DBpassword)));
 builder.Services.AddIdentity<Member, IdentityRole>(options =>
 {
