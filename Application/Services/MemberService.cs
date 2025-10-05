@@ -52,6 +52,11 @@ namespace Application.Services
             }
         }
 
+        public async Task<bool> editMember(string Email,Member newMember)
+        {
+            return await _repository.editMemberAsync(Email, newMember);
+        }
+
 
     }
 }

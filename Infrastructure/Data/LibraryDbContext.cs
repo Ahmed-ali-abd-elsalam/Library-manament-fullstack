@@ -18,7 +18,7 @@ namespace Infrastructure.Data
         public DbSet<Member> Members { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<BorrowRecord> BorrowRecords { get; set; }
-        public DbSet<UserToken> UserTokens{ get; set; }
+        public DbSet<ConfirmEmailToken> confirmEmailTokens { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

@@ -3,6 +3,7 @@ using Application.IService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 namespace Presentation.Controllers
 {
     [Controller]
+    [Route("/api/[Controller]")]
     public class AuthController :ControllerBase
     {
         private readonly IAuthService authService;
@@ -20,7 +22,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost]
-        [Route("api/login")]
+        [Route("login")]
         public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto,CancellationToken cancellationToken) {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             string source = HttpContext.Request.Headers["User-Agent"];
@@ -29,7 +31,7 @@ namespace Presentation.Controllers
             return Ok(memberResponse);
         }
         [HttpPost]
-        [Route("api/register")]
+        [Route("register")]
         public async Task<IActionResult> Register([FromBody] RegisterMemberDto registerMemberDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -45,7 +47,7 @@ namespace Presentation.Controllers
         }
         [HttpDelete]
         [Authorize]
-        [Route("api/logout")]
+        [Route("logout")]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken)
         {
             string email = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -58,7 +60,7 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("api/refresh")]
+        [Route("refresh")]
         public async Task<IActionResult> refresh(CancellationToken cancellationToken)
         {
             string source = HttpContext.Request.Headers["User-Agent"];
@@ -69,6 +71,39 @@ namespace Presentation.Controllers
             var ResponseDto = await authService.refresh(user.Value,token,source,cancellationToken);
             if (ResponseDto == null) return BadRequest("that user doesn't exist");
             return Ok(ResponseDto);
+        }
+        
+
+        [HttpPut]
+        [Route("forget-password")]
+        //TODO seperate into 2 apis and send forget password link to email
+        public async Task<IActionResult> forgotPassword([FromBody]ForgotPasswrodDTO forgotPasswordDTO)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            bool result = await authService.forgotPassword(forgotPasswordDTO);
+            if (!result) return BadRequest("invalid email / password");
+            return Accepted();
+        }
+
+        [HttpGet]
+        [Route("confirm-email")]
+        public async Task<IActionResult> confirmemail(string Email,string TokenId)
+        {
+            if (!Guid.TryParse(TokenId, out Guid guid))
+            {
+                Console.WriteLine(TokenId);
+                return BadRequest("Invalid token format.");
+            }
+            bool result = await authService.confirmEmail(Email, TokenId);
+            if (!result) return BadRequest("Invalid Email/Token");
+            return Accepted("Email Validated");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SendEmail(string Email)
+        {
+            await authService.SendEmail(Email);
+            return Ok("Email Has been sent");
         }
     }
 }

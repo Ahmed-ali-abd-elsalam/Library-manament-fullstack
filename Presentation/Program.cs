@@ -59,16 +59,20 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
     };
 });
+builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
+    .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
 builder.Services.AddScoped<IBookRepository,BookRepository>();
-// TODO *******
 builder.Services.AddScoped<IBookService,BookService>();
 builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordsRepository>();
 builder.Services.AddScoped<IBorrowRecordService, BorrowRecordService>();
-builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IUserTokenService, UserTokenService>();
+builder.Services.AddScoped<IConfirmEmailTokenRepository, ConfirmEmailTokenRepository>();
+builder.Services.AddScoped<IConfirmEmailTokenService, ConfirmEmailTokenService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IMemberRepository,MemberRepository>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<LinkFactory>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
