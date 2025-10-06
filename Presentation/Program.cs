@@ -59,15 +59,25 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
     };
 });
-builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
-    .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
+
+if (builder.Environment.IsProduction())
+{
+    builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
+       .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"), builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Password"]);
+
+}
+else
+{
+    builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
+        .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
+}
 builder.Services.AddScoped<IBookRepository,BookRepository>();
 builder.Services.AddScoped<IBookService,BookService>();
 builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordsRepository>();
 builder.Services.AddScoped<IBorrowRecordService, BorrowRecordService>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();
-builder.Services.AddScoped<IConfirmEmailTokenRepository, ConfirmEmailTokenRepository>();
-builder.Services.AddScoped<IConfirmEmailTokenService, ConfirmEmailTokenService>();
+builder.Services.AddScoped<IConfirmationTokenRepository, ConfirmationTokenRepository>();
+builder.Services.AddScoped<IConfirmationTokenService, ConfirmationTokenService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IMemberRepository,MemberRepository>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();

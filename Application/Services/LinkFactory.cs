@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -19,28 +14,26 @@ namespace Application.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string generateLink(string Mode, string Email,string TokenId = null)
+        public string generateLink(string Mode, string Email, string TokenId = null)
         {
             var httpContext = _httpContextAccessor.HttpContext;
-            if(Mode == "ConfirmEmail")
+            string action = string.Empty;
+            if (Mode == tokenModes.EmailValidation.ToString())
             {
-                return _linkGenerator.GetUriByAction(
+                action = "confirmemail";
+            }
+            else if (Mode == tokenModes.PasswordReset.ToString())
+            {
+                action = "resetpassword";
+
+            }
+            return _linkGenerator.GetUriByAction(
                     httpContext,
-                    action: "confirmemail",
+                    action: action,
                     controller: "Auth",
                     values: new { Email, TokenId }
                     ) ?? string.Empty;
-            }else if (Mode == "changPassword")
-            {
-                return _linkGenerator.GetUriByAction(
-                                httpContext,
-                                action: "forgot-password",
-                                controller: "Auth",
-                                values: new { Email }
-                                ) ?? string.Empty;
 
-            }
-            return string.Empty;
         }
     }
 }

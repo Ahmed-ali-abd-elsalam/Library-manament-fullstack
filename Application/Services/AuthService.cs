@@ -23,6 +23,11 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
+     enum tokenModes
+    {
+        EmailValidation,
+        PasswordReset
+    } 
     public class AuthService : IAuthService
     {
         private readonly UserManager<Member> _userManager;
@@ -30,14 +35,14 @@ namespace Application.Services
         private readonly IUserTokenService tokenService;
         private readonly IDistributedCache cache;
         private readonly IFluentEmail fluentEmail;
-        private readonly IConfirmEmailTokenService ConfirmEmailService;
+        private readonly IConfirmationTokenService ConfirmationTokenService;
         private readonly LinkFactory linkFactory;
 
         public AuthService(UserManager<Member> userManager,
             IUserTokenService tokenService,
             IDistributedCache cache,
             IFluentEmail fluentEmail,
-            IConfirmEmailTokenService ConfirmEmailService,
+            IConfirmationTokenService ConfirmEmailService,
             LinkFactory linkFactory,
             IMemberService memberService)
         {
@@ -45,7 +50,7 @@ namespace Application.Services
             this.tokenService = tokenService;
             this.cache = cache;
             this.fluentEmail = fluentEmail;
-            this.ConfirmEmailService = ConfirmEmailService;
+            this.ConfirmationTokenService = ConfirmEmailService;
             this.linkFactory = linkFactory;
             this.memberService = memberService;
         }
@@ -121,11 +126,11 @@ namespace Application.Services
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(member, "Member");
-                ConfirmEmailToken confirmationToken = await ConfirmEmailService.generateEmailTokenAsync(member.Email);                
-                string link = linkFactory.generateLink("ConfirmEmail", member.Email, confirmationToken.id.ToString());
+                ConfirmationToken confirmationToken = await ConfirmationTokenService.generateTokenAsync(member.Email,tokenModes.EmailValidation.ToString());                
+                string link = linkFactory.generateLink(tokenModes.EmailValidation.ToString(), member.Email, confirmationToken.id.ToString());
                 await fluentEmail
                     .To(member.Email)
-                    .Subject("Email Confirmatiom")
+                    .Subject("Email Confirmation")
                     .Body($"To Validate Email <a href=\"{link}\">click here</a>", isHtml: true)
                     .SendAsync();
                 return member.ToMemberResponseDto();
@@ -136,6 +141,16 @@ namespace Application.Services
                 return null;
             }
         }
+        public async Task<bool> confirmEmail(string Email, string TokenId)
+        {
+            Member? user = await _userManager.FindByEmailAsync(Email);
+            if (user is null) return false;
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId),tokenModes.EmailValidation.ToString());
+            if (!validateToken) return false;
+            user.EmailConfirmed = true;
+            return await memberService.editMember(Email,user);            
+           
+        }
         public async Task<bool> logOutAsync(string email,string source,CancellationToken cancellationToken)
         {
             Member user = await _userManager.FindByEmailAsync(email);
@@ -145,10 +160,27 @@ namespace Application.Services
             return true;
         }
 
-        public async Task<bool> forgotPassword(ForgotPasswrodDTO forgotPasswrodDTO)
+        public async Task<bool> resetPasswordInitializeAsync(string email)
+        {
+            Member user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return false;
+            ConfirmationToken confirmationToken = await ConfirmationTokenService.generateTokenAsync(email, tokenModes.PasswordReset.ToString());
+            string link = linkFactory.generateLink(tokenModes.PasswordReset.ToString(), email, confirmationToken.id.ToString());
+            await fluentEmail
+                .To(email)
+                .Subject("Password Reset")
+                .Body($"To rest your password <a href=\"{link}\">click here</a>", isHtml: true)
+                .SendAsync();
+            return true;
+        }
+
+
+        public async Task<bool> resetPassword(ForgotPasswrodDTO forgotPasswrodDTO,string TokenId)
         {
             Member? user =await _userManager.FindByEmailAsync(forgotPasswrodDTO.Email);
             if (user is null) return false;
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString());
+            if (!validateToken) return false;
             if (!forgotPasswrodDTO.NewPassword.Equals(forgotPasswrodDTO.ConfirmNewPassword)) return false;
             await _userManager.RemovePasswordAsync(user);
             var result = await _userManager.AddPasswordAsync(user, forgotPasswrodDTO.NewPassword);
@@ -171,15 +203,5 @@ namespace Application.Services
            
         }
 
-        public async Task<bool> confirmEmail(string Email, string TokenId)
-        {
-            Member? user = await _userManager.FindByEmailAsync(Email);
-            if (user is null) return false;
-            bool validateToken = await ConfirmEmailService.ValidateEmailTokenAsync(Guid.Parse(TokenId));
-            if (!validateToken) return false;
-            user.EmailConfirmed = true;
-            return await memberService.editMember(Email,user);            
-           
-        }
     }
 }

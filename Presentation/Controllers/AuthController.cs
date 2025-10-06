@@ -73,14 +73,22 @@ namespace Presentation.Controllers
             return Ok(ResponseDto);
         }
         
+        [HttpGet]
+        [Route("forget-Password-start")]
+        public async Task<IActionResult> resetPasswordToken(string Email)
+        {
+            bool result = await authService.resetPasswordInitializeAsync(Email);
+            if (!result) return BadRequest("User doesn't exist");
+            return Ok("to Reset your password check your email");
+        }
 
         [HttpPut]
         [Route("forget-password")]
         //TODO seperate into 2 apis and send forget password link to email
-        public async Task<IActionResult> forgotPassword([FromBody]ForgotPasswrodDTO forgotPasswordDTO)
+        public async Task<IActionResult> resetpassword(string TokenId,[FromBody]ForgotPasswrodDTO forgotPasswordDTO)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            bool result = await authService.forgotPassword(forgotPasswordDTO);
+            bool result = await authService.resetPassword(forgotPasswordDTO,TokenId);
             if (!result) return BadRequest("invalid email / password");
             return Accepted();
         }
@@ -89,11 +97,6 @@ namespace Presentation.Controllers
         [Route("confirm-email")]
         public async Task<IActionResult> confirmemail(string Email,string TokenId)
         {
-            if (!Guid.TryParse(TokenId, out Guid guid))
-            {
-                Console.WriteLine(TokenId);
-                return BadRequest("Invalid token format.");
-            }
             bool result = await authService.confirmEmail(Email, TokenId);
             if (!result) return BadRequest("Invalid Email/Token");
             return Accepted("Email Validated");

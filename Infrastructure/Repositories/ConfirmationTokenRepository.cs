@@ -11,41 +11,41 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class ConfirmEmailTokenRepository : IConfirmEmailTokenRepository
+    public class ConfirmationTokenRepository : IConfirmationTokenRepository
     {
         private readonly LibraryDbContext _context;
 
-        public ConfirmEmailTokenRepository(LibraryDbContext context)
+        public ConfirmationTokenRepository(LibraryDbContext context)
         {
             _context = context;
         }
 
-        public async Task<ConfirmEmailToken?> GetByEmailAsync(string email)
+        public async Task<ConfirmationToken?> GetByEmailAsync(string email, string mode)
         {
-            return await _context.confirmEmailTokens
+            return await _context.ConfirmationToken.Where(rt => rt.Mode == mode).OrderByDescending(rt => rt.CreatedAt)
                 .FirstOrDefaultAsync(t => t.Email == email);
         }
 
-        public async Task AddAsync(ConfirmEmailToken token)
+        public async Task AddAsync(ConfirmationToken token)
         {
-            await _context.confirmEmailTokens.AddAsync(token);
+            await _context.ConfirmationToken.AddAsync(token);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            var token = await _context.confirmEmailTokens
+            var token = await _context.ConfirmationToken
                 .FirstOrDefaultAsync(t => t.id == id);
             if (token != null)
             {
-                _context.confirmEmailTokens.Remove(token);
+                _context.ConfirmationToken.Remove(token);
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task<ConfirmEmailToken?> GetByIdAsync(Guid id)
+        public async Task<ConfirmationToken?> GetByIdAsync(Guid id,string mode)
         {
-            return await _context.confirmEmailTokens
+            return await _context.ConfirmationToken.Where(rt=> rt.Mode ==mode).OrderByDescending(rt=>rt.CreatedAt)
                 .FirstOrDefaultAsync(t => t.id == id);
         }
     }
