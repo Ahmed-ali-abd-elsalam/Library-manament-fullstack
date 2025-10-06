@@ -19,6 +19,7 @@ string DBpassword = builder.Configuration["DBPassword"];
 string tokenSecret = builder.Configuration["tokensecret"];
 
 builder.Services.AddControllers();
+builder.Services.AddLogging();
 builder.Services.AddRequestTimeouts(options =>
 {
     options.DefaultPolicy = new RequestTimeoutPolicy
@@ -84,6 +85,17 @@ builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<LinkFactory>();
 
+builder.Services.AddScoped<TokenMiddleware>();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails(configure=> {
+    configure.CustomizeProblemDetails = options =>
+    {
+        options.ProblemDetails.Extensions.TryAdd("Request Id", options.HttpContext.TraceIdentifier);
+    };
+    }
+);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
@@ -106,7 +118,8 @@ app.UseRequestTimeouts();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseTokenMiddleware();
+app.UseMiddleware<TokenMiddleware>();
+app.UseExceptionHandler();
 
 
 app.MapControllers();

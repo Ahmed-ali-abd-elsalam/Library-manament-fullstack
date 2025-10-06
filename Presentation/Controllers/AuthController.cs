@@ -105,6 +105,7 @@ namespace Presentation.Controllers
         [HttpGet]
         public async Task<IActionResult> SendEmail(string Email)
         {
+            throw new Exception("test");
             await authService.SendEmail(Email);
             return Ok("Email Has been sent");
         }
