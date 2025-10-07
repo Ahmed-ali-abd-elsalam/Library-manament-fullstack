@@ -39,12 +39,12 @@ namespace Presentation.Controllers
             if (memberResponse == null) return BadRequest("This Email Is Already Taken");
             return Ok(memberResponse);
         }
-        [HttpGet("/timeout")]
-        public async Task<IActionResult> timeout(CancellationToken ct)
-        {
-                await Task.Delay(8000,ct);
-                return Ok();
-        }
+        //[HttpGet("/timeout")]
+        //public async Task<IActionResult> timeout(CancellationToken ct)
+        //{
+        //        await Task.Delay(8000,ct);
+        //        return Ok();
+        //}
         [HttpDelete]
         [Authorize]
         [Route("logout")]
@@ -102,12 +102,12 @@ namespace Presentation.Controllers
             return Accepted("Email Validated");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> SendEmail(string Email)
-        {
-            throw new Exception("test");
-            await authService.SendEmail(Email);
-            return Ok("Email Has been sent");
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> SendEmail(string Email)
+        //{
+        //    throw new Exception("test");
+        //    await authService.SendEmail(Email);
+        //    return Ok("Email Has been sent");
+        //}
     }
 }
