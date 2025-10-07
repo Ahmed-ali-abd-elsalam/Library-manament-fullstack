@@ -3,6 +3,7 @@ using Application.IService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 namespace Presentation.Controllers
 {
     [Controller]
+    [Route("/api/[Controller]")]
     public class AuthController :ControllerBase
     {
         private readonly IAuthService authService;
@@ -20,7 +22,8 @@ namespace Presentation.Controllers
         }
 
         [HttpPost]
-        [Route("api/login")]
+        [Route("login")]
+// TODO Token middleware
         public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto,CancellationToken cancellationToken) {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             string source = HttpContext.Request.Headers["User-Agent"];
@@ -29,7 +32,7 @@ namespace Presentation.Controllers
             return Ok(memberResponse);
         }
         [HttpPost]
-        [Route("api/register")]
+        [Route("register")]
         public async Task<IActionResult> Register([FromBody] RegisterMemberDto registerMemberDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -37,15 +40,15 @@ namespace Presentation.Controllers
             if (memberResponse == null) return BadRequest("This Email Is Already Taken");
             return Ok(memberResponse);
         }
-        [HttpGet("/timeout")]
-        public async Task<IActionResult> timeout(CancellationToken ct)
-        {
-                await Task.Delay(8000,ct);
-                return Ok();
-        }
+        //[HttpGet("/timeout")]
+        //public async Task<IActionResult> timeout(CancellationToken ct)
+        //{
+        //        await Task.Delay(8000,ct);
+        //        return Ok();
+        //}
         [HttpDelete]
         [Authorize]
-        [Route("api/logout")]
+        [Route("logout")]
         public async Task<IActionResult> Logout(CancellationToken cancellationToken)
         {
             string email = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -58,7 +61,7 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("api/refresh")]
+        [Route("refresh")]
         public async Task<IActionResult> refresh(CancellationToken cancellationToken)
         {
             string source = HttpContext.Request.Headers["User-Agent"];
@@ -70,5 +73,43 @@ namespace Presentation.Controllers
             if (ResponseDto == null) return BadRequest("that user doesn't exist");
             return Ok(ResponseDto);
         }
+        
+        [HttpGet]
+        [Route("forget-Password-start")]
+        public async Task<IActionResult> resetPasswordToken(string Email)
+        {
+            bool result = await authService.resetPasswordInitializeAsync(Email);
+            if (!result) return BadRequest("User doesn't exist");
+            return Ok("to Reset your password check your email");
+        }
+
+        [HttpPut]
+        [Route("forget-password")]
+
+        //TODO email gets changed
+        public async Task<IActionResult> resetpassword(string TokenId,string Email,[FromBody]ForgotPasswrodDTO forgotPasswordDTO)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            bool result = await authService.resetPassword(forgotPasswordDTO,TokenId,Email);
+            if (!result) return BadRequest("invalid email / password");
+            return Accepted();
+        }
+
+        [HttpGet]
+        [Route("confirm-email")]
+        public async Task<IActionResult> confirmemail(string Email,string TokenId)
+        {
+            bool result = await authService.confirmEmail(Email, TokenId);
+            if (!result) return BadRequest("Invalid Email/Token");
+            return Accepted("Email Validated");
+        }
+
+        //[HttpGet]
+        //public async Task<IActionResult> SendEmail(string Email)
+        //{
+        //    throw new Exception("test");
+        //    await authService.SendEmail(Email);
+        //    return Ok("Email Has been sent");
+        //}
     }
 }

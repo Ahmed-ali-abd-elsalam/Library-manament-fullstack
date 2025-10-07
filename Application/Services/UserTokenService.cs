@@ -19,38 +19,40 @@ namespace Application.Services
 
         private readonly IConfiguration configuration;
 
-        public UserTokenService(ITokenRepository repository, IConfiguration configuration)
+        public UserTokenService(
+            //ITokenRepository repository, 
+            IConfiguration configuration)
         {
-            _repository = repository;
+            //_repository = repository;
             this.configuration = configuration;
         }
 
-        public async Task<string> getUserTokenAsync(string Email ,string source)
-        {
-            UserToken userToken = await _repository.GetUserTokenAsync(Email, source);
-            if (userToken == null) return null;
-            if (userToken.ExpiresAt <= DateTime.UtcNow)
-            {
-                _repository.DeleteUserToken(userToken);
-                return null;
-            }
-            return userToken.token;
-        }
-        public async Task<UserToken> getTokenAsync(string token)
-        {
-            UserToken userToken = await _repository.GetUserTokenAsync(token);
-            if (userToken == null) return null;
-            if (userToken.ExpiresAt <= DateTime.UtcNow)
-            {
-                _repository.DeleteUserToken(userToken);
-                return null;
-            }
-            return userToken;
-        }
-        public async Task<bool> deleteTokenAsync(UserToken userToken)
-        {
-           return await _repository.DeleteUserToken(userToken);
-        }
+        //public async Task<string> getUserTokenAsync(string Email ,string source)
+        //{
+        //    UserToken userToken = await _repository.GetUserTokenAsync(Email, source);
+        //    if (userToken == null) return null;
+        //    if (userToken.ExpiresAt <= DateTime.UtcNow)
+        //    {
+        //        _repository.DeleteUserToken(userToken);
+        //        return null;
+        //    }
+        //    return userToken.token;
+        //}
+        //public async Task<UserToken> getTokenAsync(string token)
+        //{
+        //    UserToken userToken = await _repository.GetUserTokenAsync(token);
+        //    if (userToken == null) return null;
+        //    if (userToken.ExpiresAt <= DateTime.UtcNow)
+        //    {
+        //        _repository.DeleteUserToken(userToken);
+        //        return null;
+        //    }
+        //    return userToken;
+        //}
+        //public async Task<bool> deleteTokenAsync(UserToken userToken)
+        //{
+        //   return await _repository.DeleteUserToken(userToken);
+        //}
 
         public async Task<string> createTokenAsync(Member member, IList<string> roles, string mode, string source)
         {
