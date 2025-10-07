@@ -15,7 +15,7 @@ namespace Application.IService
         Task<LoginResponseDto> Login(LoginMemberDto loginMemberDto,string source,CancellationToken cancellationToken);
         Task<MemberResponseDto> Signup(RegisterMemberDto registerMemberDto);
         public Task<bool> logOutAsync(string email, string source,CancellationToken cancellationToken);
-        public Task<bool> resetPassword(ForgotPasswrodDTO forgetPasswrodDTO,string TokenId);
+        public Task<bool> resetPassword(ForgotPasswrodDTO forgetPasswrodDTO,string TokenId,string Email);
         public Task<bool> confirmEmail(string Email,string Token);
         public Task<bool> resetPasswordInitializeAsync(string email);
         public Task SendEmail(string Email);

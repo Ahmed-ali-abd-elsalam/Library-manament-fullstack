@@ -23,6 +23,7 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [Route("login")]
+// TODO Token middleware
         public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto,CancellationToken cancellationToken) {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             string source = HttpContext.Request.Headers["User-Agent"];
@@ -84,11 +85,12 @@ namespace Presentation.Controllers
 
         [HttpPut]
         [Route("forget-password")]
-        //TODO seperate into 2 apis and send forget password link to email
-        public async Task<IActionResult> resetpassword(string TokenId,[FromBody]ForgotPasswrodDTO forgotPasswordDTO)
+
+        //TODO email gets changed
+        public async Task<IActionResult> resetpassword(string TokenId,string Email,[FromBody]ForgotPasswrodDTO forgotPasswordDTO)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            bool result = await authService.resetPassword(forgotPasswordDTO,TokenId);
+            bool result = await authService.resetPassword(forgotPasswordDTO,TokenId,Email);
             if (!result) return BadRequest("invalid email / password");
             return Accepted();
         }

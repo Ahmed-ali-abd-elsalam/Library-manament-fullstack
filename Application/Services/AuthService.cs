@@ -175,9 +175,9 @@ namespace Application.Services
         }
 
 
-        public async Task<bool> resetPassword(ForgotPasswrodDTO forgotPasswrodDTO,string TokenId)
+        public async Task<bool> resetPassword(ForgotPasswrodDTO forgotPasswrodDTO,string TokenId,string Email)
         {
-            Member? user =await _userManager.FindByEmailAsync(forgotPasswrodDTO.Email);
+            Member? user =await _userManager.FindByEmailAsync(Email);
             if (user is null) return false;
             bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString());
             if (!validateToken) return false;
