@@ -19,6 +19,13 @@ string DBpassword = builder.Configuration["DBPassword"];
 string tokenSecret = builder.Configuration["tokensecret"];
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<GlobalTokenValidationFilter>();
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.AddService<GlobalTokenValidationFilter>();
+});
+
 builder.Services.AddLogging();
 builder.Services.AddRequestTimeouts(options =>
 {
@@ -85,7 +92,7 @@ builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<LinkFactory>();
 
-builder.Services.AddScoped<TokenMiddleware>();
+//builder.Services.AddScoped<TokenMiddleware>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails(configure=> {
@@ -118,7 +125,7 @@ app.UseRequestTimeouts();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<TokenMiddleware>();
+//app.UseMiddleware<TokenMiddleware>();
 app.UseExceptionHandler();
 
 
