@@ -145,7 +145,7 @@ namespace Application.Services
         {
             Member? user = await _userManager.FindByEmailAsync(Email);
             if (user is null) return false;
-            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId),tokenModes.EmailValidation.ToString());
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId),tokenModes.EmailValidation.ToString(), Email);
             if (!validateToken) return false;
             user.EmailConfirmed = true;
             return await memberService.editMember(Email,user);            
@@ -179,7 +179,7 @@ namespace Application.Services
         {
             Member? user =await _userManager.FindByEmailAsync(Email);
             if (user is null) return false;
-            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString());
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString(),Email);
             if (!validateToken) return false;
             if (!forgotPasswrodDTO.NewPassword.Equals(forgotPasswrodDTO.ConfirmNewPassword)) return false;
             await _userManager.RemovePasswordAsync(user);
