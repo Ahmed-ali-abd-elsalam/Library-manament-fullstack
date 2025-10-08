@@ -14,7 +14,7 @@ namespace Application.IRepository
         public Task<ICollection<Member>> GetMembersAsync();
         public Task<Member?> GetMemberAsyncById(string Id);
         public Task<Member?> GetMemberAsyncByEmail(string Email);
-        public Task<bool> editMemberAsync(string Email, Member newMember);
+
         public Task<Member> AddMemberAsync(Member member);
     }
 }

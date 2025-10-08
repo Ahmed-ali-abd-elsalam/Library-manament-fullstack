@@ -19,14 +19,6 @@ string DBpassword = builder.Configuration["DBPassword"];
 string tokenSecret = builder.Configuration["tokensecret"];
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<GlobalTokenValidationFilter>();
-
-builder.Services.AddControllers(options =>
-{
-    options.Filters.AddService<GlobalTokenValidationFilter>();
-});
-
-builder.Services.AddLogging();
 builder.Services.AddRequestTimeouts(options =>
 {
     options.DefaultPolicy = new RequestTimeoutPolicy
@@ -67,41 +59,16 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
     };
 });
-
-if (builder.Environment.IsProduction())
-{
-    builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
-       .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"), builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Password"]);
-
-}
-else
-{
-    builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
-        .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
-}
 builder.Services.AddScoped<IBookRepository,BookRepository>();
+// TODO *******
 builder.Services.AddScoped<IBookService,BookService>();
 builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordsRepository>();
 builder.Services.AddScoped<IBorrowRecordService, BorrowRecordService>();
-builder.Services.AddScoped<IUserTokenService, UserTokenService>();
-builder.Services.AddScoped<IConfirmationTokenRepository, ConfirmationTokenRepository>();
-builder.Services.AddScoped<IConfirmationTokenService, ConfirmationTokenService>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<IMemberRepository,MemberRepository>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<LinkFactory>();
-
-//builder.Services.AddScoped<TokenMiddleware>();
-
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails(configure=> {
-    configure.CustomizeProblemDetails = options =>
-    {
-        options.ProblemDetails.Extensions.TryAdd("Request Id", options.HttpContext.TraceIdentifier);
-    };
-    }
-);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -125,8 +92,7 @@ app.UseRequestTimeouts();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-//app.UseMiddleware<TokenMiddleware>();
-app.UseExceptionHandler();
+app.UseTokenMiddleware();
 
 
 app.MapControllers();
