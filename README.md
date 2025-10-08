@@ -1,234 +1,237 @@
 ﻿# 📚 Library Management API
 
-A small but real-world **Library Management API** built with **ASP.NET Core**, **Entity Framework Core**, **JWT Authentication**, and **Clean Architecture** principles.
-This project demonstrates key backend concepts like **token-based authentication**, **email confirmation**, **password resets**, **Redis caching**, and **clean layering**.
+A **real-world Library Management System API** built with **.NET Core**, **Entity Framework Core**, **JWT Authentication**, and **Clean Architecture** principles.
+This project demonstrates scalable backend design, secure authentication, and best practices in software architecture.
 
 ---
 
-## 📑 Table of Contents
+## 🧱 Architecture Overview
 
-1. [🏗️ Architecture Overview](#️-architecture-overview)
-2. [⚙️ Prerequisites](#️-prerequisites)
-3. [📘 Entities](#-entities)
-4. [🚀 Features Overview](#-features-overview)
-5. [🔐 Authentication (JWT)](#-authentication-jwt)
-6. [🚪 Logout & Token Revocation](#-logout--token-revocation)
-7. [♻️ Refresh Token Flow](#-refresh-token-flow)
-8. [📧 Email Validation](#-email-validation)
-9. [🔑 Password Reset Flow](#-password-reset-flow)
-10. [🧰 Development vs Production Email Sending](#-development-vs-production-email-sending)
-11. [⚙️ Global Exception Handling](#️-global-exception-handling)
-12. [🧩 OpenAPI Endpoints Summary](#-openapi-endpoints-summary)
-13. [🧠 Summary](#-summary)
+This project follows **Clean Architecture**, ensuring clear separation of concerns and maintainability.
 
----
+```
+src/
+├── Domain
+│   ├── Entities
+│   └── Exceptions
+│
+├── Application
+│   ├── DTOs
+│   ├── Interfaces
+│   └── Services
+│
+├── Infrastructure
+│   ├── DbContext (EF Core)
+│   ├── Repository Implementations
+│   └── Migrations
+│
+└── Presentation
+    ├── Controllers
+    ├── Middlewares
+    └── Program.cs
+```
 
-## 🏗️ Architecture Overview
-
-The solution follows **Clean Architecture** with four main layers:
-
-### **1. Domain**
-
-* Contains **Entities** (`Book`, `Member`, `BorrowRecord`) and business rules.
-
-### **2. Application**
-
-* Contains **use cases**, **DTOs**, and **interfaces** for services and repositories.
-* Example: `IBookService`, `IMemberService`, `IBorrowService`.
-
-### **3. Infrastructure**
-
-* Contains EF Core **DbContext**, **repository implementations**, and **database migrations**.
-* Handles all data persistence and external integrations (e.g., Redis, SMTP).
-
-### **4. Presentation**
-
-* ASP.NET Core **Controllers** for RESTful APIs.
-* Handles request/response mapping, middleware pipeline, and authentication.
+* **Domain** → Entities & core business logic
+* **Application** → Interfaces, DTOs, use cases, and services
+* **Infrastructure** → Database, repository, and external service integrations
+* **Presentation** → API layer (Controllers, Filters, Middlewares)
 
 ---
 
-## ⚙️ Prerequisites
+## ⚙️ Technologies Used
 
-Before running the project locally, ensure the following services are installed and configured:
-
-| Tool              | Purpose                                                | Installation Notes                                                                     |
-| ----------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| **Redis**         | Token storage, blacklisting, and refresh token caching | Install locally or use Docker (`docker run -d -p 6379:6379 redis`)                     |
-| **PaperCut SMTP** | Email testing in development (no real emails sent)     | [Download PaperCut SMTP](https://github.com/ChangemakerStudios/Papercut-SMTP/releases) |
-| **Gmail SMTP**    | Production email sending                               | Configure credentials under `appsettings.Production.json` or User Secrets              |
+* **.NET 8 Web API**
+* **Entity Framework Core (Code First)**
+* **JWT Authentication**
+* **PostgreSQL / SQL Server**
+* **FluentEmail (SMTP)**
+* **Dependency Injection**
+* **SOLID Principles**
+* **Papercut (Local Email Testing)**
 
 ---
 
 ## 📘 Entities
 
-| Entity           | Fields                                        | Description                        |
-| ---------------- | --------------------------------------------- | ---------------------------------- |
-| **Book**         | Id, Title, Author, PublishedYear, IsAvailable | Represents a library book          |
-| **Member**       | Id, Name, Email, JoinDate                     | Represents a library member        |
-| **BorrowRecord** | Id, BorrowDate, ReturnDate, BookId, MemberId  | Represents a borrowing transaction |
+### Book
+
+| Field         | Type   | Description         |
+| ------------- | ------ | ------------------- |
+| Id            | int    | Primary key         |
+| Title         | string | Book title          |
+| Author        | string | Book author         |
+| PublishedYear | int    | Year published      |
+| IsAvailable   | bool   | Availability status |
+
+### Member
+
+| Field    | Type     | Description  |
+| -------- | -------- | ------------ |
+| Id       | int      | Primary key  |
+| Name     | string   | Member name  |
+| Email    | string   | Member email |
+| JoinDate | DateTime | Date joined  |
+
+### BorrowRecord
+
+| Field      | Type      | Description                |
+| ---------- | --------- | -------------------------- |
+| Id         | int       | Primary key                |
+| BorrowDate | DateTime  | When the book was borrowed |
+| ReturnDate | DateTime? | When it was returned       |
+| BookId     | int       | FK to Book                 |
+| MemberId   | int       | FK to Member               |
 
 ---
 
-## 🚀 Features Overview
+## 🚀 Features
 
-### 📚 **Book Management**
+### 📖 Book Management
 
-* `GET /api/books` → List all books (paginated)
-* `POST /api/books/add` → Add a new book (**Admin only**)
-* `PUT /api/books/{BookId}` → Update book details
-* `DELETE /api/books/{BookId}` → Delete book
+* `GET /books` → List all books (supports optional pagination/filtering)
+* `POST /books` → Add a new book *(Admin only)*
+* `PUT /books/{id}` → Update book details *(Admin only)*
+* `DELETE /books/{id}` → Delete a book *(Admin only)*
 
-### 👥 **Member Management**
+### 👥 Member Management
 
-* `GET /api/members` → List all members
-* `POST /api/members` → Add a new member
+* `GET /members` → List all members *(Admin only)*
+* `POST /members` → Add a new member *(Admin only)*
 
-### 🔄 **Borrow / Return**
+### 📦 Borrow & Return
 
-* `POST /api/borrow/{BookId}` → Borrow a book (**Member only**)
-* `POST /api/return/{BookId}` → Return a borrowed book (**Member only**)
+* `POST /borrow` → Borrow a book *(requires JWT authentication)*
+* `POST /return` → Return a borrowed book
 
----
+**Rules:**
 
-## 🔐 Authentication (JWT)
-
-* **Registration** → `POST /api/Auth/register`
-* **Login** → `POST /api/Auth/login`
-* **Logout** → `DELETE /api/Auth/logout`
-* **Refresh Token** → `POST /api/Auth/refresh`
-
-Protected routes require `[Authorize]` attributes, ensuring only authenticated users access restricted endpoints.
+* Book must be available to borrow.
+* Borrowing sets `IsAvailable = false`.
+* Returning sets `IsAvailable = true`.
+* A member cannot borrow the same book twice simultaneously.
 
 ---
 
-## 🚪 Logout & Token Revocation
+## 🔐 Authentication & Authorization
 
-Redis tracks all active JWTs by user and login source.
-Middleware checks every request for valid tokens.
+### Endpoints
 
-* Missing token in Redis →
+* `POST /auth/register` → Register a new user (email confirmation required)
+* `POST /auth/login` → Login and receive JWT & refresh token
+* `POST /auth/refresh` → Refresh JWT using refresh token
+* `POST /auth/reset-password` → Reset password via email link
 
-  ```json
-  { "error": "Invalid Token" }
-  ```
-* Token removed on logout or expiry.
+### Security Features
 
-✅ Supports **multi-device login** and **immediate revocation**.
-
----
-
-## ♻️ Refresh Token Flow
-
-| Event          | Access Token    | Refresh Token | Redis Entry | Result   |
-| -------------- | --------------- | ------------- | ----------- | -------- |
-| Login          | Issued          | Issued        | Stored      | ✅        |
-| Access expires | Invalid         | Valid         | Exists      | 🔄 Renew |
-| Refresh used   | New pair issued | Old removed   | Updated     | ✅        |
-| Logout         | Revoked         | Revoked       | Removed     | ❌        |
-| Reuse attempt  | Invalid         | Invalid       | Missing     | ❌ 401    |
+✅ JWT Authentication
+✅ Refresh Token System
+✅ Multi-Device Login Tracking
+✅ Role-Based Access Control (Admin / Member)
+✅ Email Confirmation (via FluentEmail + SMTP)
+✅ Password Reset
+✅ Token Blacklisting (Logout / Token Revocation)
 
 ---
 
-## 📧 Email Validation
+## ⚡ Custom Middleware
 
-New users receive an email with a **confirmation link**:
-`/api/Auth/confirm-email?email=<user>&token=<token>`
+* **Global Exception Handler**
 
-If the token matches → account becomes **verified**.
+  * Intercepts unhandled exceptions globally.
+  * Returns standardized error responses.
+  * Prevents stack trace leaks to frontend.
 
----
+* **Token Validation Middleware**
 
-## 🔑 Password Reset Flow
+  * Ensures token exists in `UserTokens` table.
+  * Rejects unauthorized access for revoked tokens.
 
-* Start → `GET /api/Auth/forget-password-start?email=<email>`
-* Reset → `PUT /api/Auth/forget-password?token=<token>` with:
+* **Request Timeout Middleware**
 
-  ```json
-  {
-    "email": "user@example.com",
-    "newPassword": "MyNewPass123",
-    "confirmNewPassword": "MyNewPass123"
-  }
-  ```
-
-If the token is valid → password is updated.
+  * Automatically cancels long-running requests.
 
 ---
 
-## 🧰 Development vs Production Email Sending
+## ✉️ Email Integration
 
-| Environment     | SMTP       | Description                       |
-| --------------- | ---------- | --------------------------------- |
-| **Development** | PaperCut   | Captures emails locally           |
-| **Production**  | Gmail SMTP | Sends real emails via FluentEmail |
+Email features powered by **FluentEmail.SMTP**:
 
----
-
-## ⚙️ Global Exception Handling
-
-Middleware returns standardized error responses instead of stack traces:
-
-```json
-{
-  "statusCode": 400,
-  "error": "Invalid Request",
-  "message": "The provided data is invalid."
-}
-```
-
-✅ No try/catch needed in controllers
-✅ Centralized, safe error reporting
+* Email confirmation after registration
+* Password reset links
+* Works locally with **Papercut** or production SMTP (e.g., Gmail)
 
 ---
 
-## 🧩 OpenAPI Endpoints Summary
+## 🧩 Bonus Features
 
-### **Auth**
-
-| Method   | Endpoint                          | Description             |
-| -------- | --------------------------------- | ----------------------- |
-| `POST`   | `/api/Auth/register`              | Register new member     |
-| `POST`   | `/api/Auth/login`                 | Login and get JWT       |
-| `DELETE` | `/api/Auth/logout`                | Logout and revoke token |
-| `POST`   | `/api/Auth/refresh`               | Refresh access token    |
-| `GET`    | `/api/Auth/confirm-email`         | Confirm user email      |
-| `GET`    | `/api/Auth/forget-password-start` | Start password reset    |
-| `PUT`    | `/api/Auth/forget-password`       | Complete password reset |
-
-### **Books**
-
-| Method   | Endpoint              | Role   | Description          |
-| -------- | --------------------- | ------ | -------------------- |
-| `GET`    | `/api/books`          | Public | Get all books        |
-| `POST`   | `/api/books/add`      | Admin  | Add a new book       |
-| `PUT`    | `/api/books/{BookId}` | Admin  | Update existing book |
-| `DELETE` | `/api/books/{BookId}` | Admin  | Delete a book        |
-
-### **Borrow / Return**
-
-| Method | Endpoint               | Role   | Description          |
-| ------ | ---------------------- | ------ | -------------------- |
-| `POST` | `/api/borrow/{BookId}` | Member | Borrow a book        |
-| `POST` | `/api/return/{BookId}` | Member | Return borrowed book |
-
-### **Members**
-
-| Method | Endpoint       | Role  | Description             |
-| ------ | -------------- | ----- | ----------------------- |
-| `GET`  | `/api/members` | Admin | Get all members         |
-| `POST` | `/api/members` | Admin | Add new member manually |
+* ✅ Pagination & filtering for `/books`
+* ✅ Role-based authorization
+* ✅ Global Exception Handling
+* ✅ Token Table for multiple logins
+* ✅ Email confirmation & password reset
+* ✅ Timeout middleware
+* 🔜 OAuth2 (Planned)
 
 ---
 
-## 🧠 Summary
+## 🧠 Design Principles
 
-This API demonstrates:
+* **Clean Architecture**
+* **Dependency Injection**
+* **Single Responsibility**
+* **Open/Closed Principle**
+* **Separation of Concerns**
 
-* Robust **authentication & authorization**
-* **Email verification** and **password recovery**
-* **Redis-backed token revocation**
-* **Clean Architecture** and **SOLID** principles
-* **Production-ready middleware**, caching, and SMTP integration
+---
 
-> Ideal for showcasing backend engineering skills using ASP.NET Core and modern authentication workflows.
+## 🧰 Setup Instructions
+
+1. Clone the repository
+
+   ```bash
+   git clone https://github.com/your-username/LibraryManagementAPI.git
+   cd LibraryManagementAPI
+   ```
+
+2. Set up user secrets (for sensitive configs)
+
+   ```bash
+   dotnet user-secrets set "DBPassword" "your-db-password"
+   dotnet user-secrets set "TokenSecret" "your-jwt-secret"
+   dotnet user-secrets set "SmtpUser" "your-email@example.com"
+   dotnet user-secrets set "SmtpPass" "your-email-password"
+   ```
+
+3. Run database migrations
+
+   ```bash
+   dotnet ef database update
+   ```
+
+4. Start the project
+
+   ```bash
+   dotnet run --launch-profile "LibraryManagementAPI"
+   ```
+
+5. Access Swagger UI at
+
+   ```
+   https://localhost:5001/swagger
+   ```
+
+---
+
+## 🧑‍💻 Author
+
+**Ahmed Ali Abdelsalam**
+Backend Developer | .NET • FastAPI • Django
+📧 [ahmedali@example.com](mailto:ahmedali@example.com)
+🔗 [LinkedIn](https://linkedin.com/in/ahmedaliabdelsalam)
+🔗 [GitHub](https://github.com/your-username)
+
+---
+
+## 🏁 License
+
+This project is open-source and available under the [MIT License](LICENSE).
