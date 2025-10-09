@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(LibraryDbContext))]
-    partial class LibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251005085757_confirmEmailTokens")]
+    partial class confirmEmailTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,7 +82,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("BorrowRecords");
                 });
 
-            modelBuilder.Entity("Domain.Entities.ConfirmationToken", b =>
+            modelBuilder.Entity("Domain.Entities.ConfirmEmailToken", b =>
                 {
                     b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
@@ -92,16 +95,12 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Mode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("expiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("id");
 
-                    b.ToTable("ConfirmationToken");
+                    b.ToTable("confirmEmailTokens");
                 });
 
             modelBuilder.Entity("Domain.Entities.Member", b =>

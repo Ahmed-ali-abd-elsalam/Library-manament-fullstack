@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace Application.IService
     {
         public  Task<ICollection<MemberResponseDto>> GetMembers();
         public  Task<MemberResponseDto> AddMember(RegisterMemberDto memberDto);
-
+        public Task<bool> editMember(string Email, Member newMember);
 
     }
 }

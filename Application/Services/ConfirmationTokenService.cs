@@ -31,10 +31,10 @@ namespace Application.Services
             confirmationTokenRepository.AddAsync(confimationToken);
             return confimationToken;
         }
-        public async Task<bool> ValidateTokenAsync(Guid Id,string Mode)
+        public async Task<bool> ValidateTokenAsync(Guid Id,string Mode,string email)
         {
             ConfirmationToken confimationToken = await confirmationTokenRepository.GetByIdAsync(Id,Mode);
-            if (confimationToken == null || confimationToken.expiresAt < DateTime.UtcNow)
+            if (confimationToken == null || confimationToken.expiresAt < DateTime.UtcNow || confimationToken.Email != email)
             {
                 return false;
             }

@@ -203,4 +203,32 @@ Middleware returns standardized error responses instead of stack traces:
 | `GET`    | `/api/books`          | Public | Get all books        |
 | `POST`   | `/api/books/add`      | Admin  | Add a new book       |
 | `PUT`    | `/api/books/{BookId}` | Admin  | Update existing book |
-| `DELETE` | `/api/books/{BookId}` | Admin  |                      |
+| `DELETE` | `/api/books/{BookId}` | Admin  | Delete a book        |
+
+### **Borrow / Return**
+
+| Method | Endpoint               | Role   | Description          |
+| ------ | ---------------------- | ------ | -------------------- |
+| `POST` | `/api/borrow/{BookId}` | Member | Borrow a book        |
+| `POST` | `/api/return/{BookId}` | Member | Return borrowed book |
+
+### **Members**
+
+| Method | Endpoint       | Role  | Description             |
+| ------ | -------------- | ----- | ----------------------- |
+| `GET`  | `/api/members` | Admin | Get all members         |
+| `POST` | `/api/members` | Admin | Add new member manually |
+
+---
+
+## 🧠 Summary
+
+This API demonstrates:
+
+* Robust **authentication & authorization**
+* **Email verification** and **password recovery**
+* **Redis-backed token revocation**
+* **Clean Architecture** and **SOLID** principles
+* **Production-ready middleware**, caching, and SMTP integration
+
+> Ideal for showcasing backend engineering skills using ASP.NET Core and modern authentication workflows.

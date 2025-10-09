@@ -3,6 +3,7 @@ using Application.IRepository;
 using Application.IService;
 using Application.Mappers;
 using Domain.Entities;
+using FluentEmail.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -21,27 +23,44 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class AuthService : IAuthService 
+     enum tokenModes
+    {
+        EmailValidation,
+        PasswordReset
+    } 
+    public class AuthService : IAuthService
     {
         private readonly UserManager<Member> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        // TODO Remove This
+        private readonly IMemberService memberService;
         private readonly IUserTokenService tokenService;
         private readonly IDistributedCache cache;
-        public AuthService(UserManager<Member> userManager, RoleManager<IdentityRole> roleManager, IUserTokenService tokenService, IDistributedCache cache)
+        private readonly IFluentEmail fluentEmail;
+        private readonly IConfirmationTokenService ConfirmationTokenService;
+        private readonly LinkFactory linkFactory;
+
+        public AuthService(UserManager<Member> userManager,
+            IUserTokenService tokenService,
+            IDistributedCache cache,
+            IFluentEmail fluentEmail,
+            IConfirmationTokenService ConfirmEmailService,
+            LinkFactory linkFactory,
+            IMemberService memberService)
         {
             _userManager = userManager;
-            _roleManager = roleManager;
             this.tokenService = tokenService;
             this.cache = cache;
+            this.fluentEmail = fluentEmail;
+            this.ConfirmationTokenService = ConfirmEmailService;
+            this.linkFactory = linkFactory;
+            this.memberService = memberService;
         }
 
-        public async Task<LoginResponseDto> Login(LoginMemberDto loginMemberDto,string source,CancellationToken cancellationToken)
+        public async Task<LoginResponseDto> Login(LoginMemberDto loginMemberDto, string source, CancellationToken cancellationToken)
         {
             Member user = await _userManager.FindByEmailAsync(loginMemberDto.Email);
             if (user == null) return null;
             bool result = await _userManager.CheckPasswordAsync(user, loginMemberDto.Password);
-            if (result == false) return null;
+            if (result == false || !user.EmailConfirmed) return null;
             var userRoles = await _userManager.GetRolesAsync(user);
             string key = $"{loginMemberDto.Email}-{source}";
             string ResponseToken =  await cache.GetStringAsync(key, cancellationToken);
@@ -107,6 +126,13 @@ namespace Application.Services
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(member, "Member");
+                ConfirmationToken confirmationToken = await ConfirmationTokenService.generateTokenAsync(member.Email,tokenModes.EmailValidation.ToString());                
+                string link = linkFactory.generateLink(tokenModes.EmailValidation.ToString(), member.Email, confirmationToken.id.ToString());
+                await fluentEmail
+                    .To(member.Email)
+                    .Subject("Email Confirmation")
+                    .Body($"To Validate Email <a href=\"{link}\">click here</a>", isHtml: true)
+                    .SendAsync();
                 return member.ToMemberResponseDto();
             }
             else
@@ -119,7 +145,7 @@ namespace Application.Services
         {
             Member? user = await _userManager.FindByEmailAsync(Email);
             if (user is null) return false;
-            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId),tokenModes.EmailValidation.ToString());
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId),tokenModes.EmailValidation.ToString(), Email);
             if (!validateToken) return false;
             user.EmailConfirmed = true;
             return await memberService.editMember(Email,user);            
@@ -153,7 +179,7 @@ namespace Application.Services
         {
             Member? user =await _userManager.FindByEmailAsync(Email);
             if (user is null) return false;
-            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString());
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString(),Email);
             if (!validateToken) return false;
             if (!forgotPasswrodDTO.NewPassword.Equals(forgotPasswrodDTO.ConfirmNewPassword)) return false;
             await _userManager.RemovePasswordAsync(user);
