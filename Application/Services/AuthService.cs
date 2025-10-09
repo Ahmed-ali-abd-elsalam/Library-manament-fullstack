@@ -115,6 +115,16 @@ namespace Application.Services
                 return null;
             }
         }
+        public async Task<bool> confirmEmail(string Email, string TokenId)
+        {
+            Member? user = await _userManager.FindByEmailAsync(Email);
+            if (user is null) return false;
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId),tokenModes.EmailValidation.ToString());
+            if (!validateToken) return false;
+            user.EmailConfirmed = true;
+            return await memberService.editMember(Email,user);            
+           
+        }
         public async Task<bool> logOutAsync(string email,string source,CancellationToken cancellationToken)
         {
             Member user = await _userManager.FindByEmailAsync(email);
@@ -122,9 +132,49 @@ namespace Application.Services
             string key = $"{email}-{source}";
             await cache.RemoveAsync(key, cancellationToken);
             return true;
-            //UserToken userToken = await tokenService.getTokenAsync(token);
-            //if (userToken == null) return false;
-            //return await tokenService.deleteTokenAsync(userToken);
+        }
+
+        public async Task<bool> resetPasswordInitializeAsync(string email)
+        {
+            Member user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return false;
+            ConfirmationToken confirmationToken = await ConfirmationTokenService.generateTokenAsync(email, tokenModes.PasswordReset.ToString());
+            string link = linkFactory.generateLink(tokenModes.PasswordReset.ToString(), email, confirmationToken.id.ToString());
+            await fluentEmail
+                .To(email)
+                .Subject("Password Reset")
+                .Body($"To rest your password <a href=\"{link}\">click here</a>", isHtml: true)
+                .SendAsync();
+            return true;
+        }
+
+
+        public async Task<bool> resetPassword(ForgotPasswrodDTO forgotPasswrodDTO,string TokenId,string Email)
+        {
+            Member? user =await _userManager.FindByEmailAsync(Email);
+            if (user is null) return false;
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString());
+            if (!validateToken) return false;
+            if (!forgotPasswrodDTO.NewPassword.Equals(forgotPasswrodDTO.ConfirmNewPassword)) return false;
+            await _userManager.RemovePasswordAsync(user);
+            var result = await _userManager.AddPasswordAsync(user, forgotPasswrodDTO.NewPassword);
+            if (!result.Succeeded)
+            {
+                Console.WriteLine(result.Errors.ToList());
+                return false;
+            }
+            return true;
+        }
+
+        public async Task SendEmail(string Email)
+        {
+            string link = "https://localhost:7205/api/auth";
+            await fluentEmail
+                .To(Email)
+                .Subject("Email Confirmation")
+                    .Body($"To Validate Email <a href=\"{link}\">click here</a>",isHtml:true)
+                .SendAsync();
+           
         }
 
     }
