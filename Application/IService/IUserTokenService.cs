@@ -10,9 +10,9 @@ namespace Application.IService
     public interface IUserTokenService
     {
         public Task<string> createTokenAsync(Member member, IList<string> roles, string Mode,string source);
-        public  Task<string> getUserTokenAsync(string Email, string source);
-        public Task<UserToken> getTokenAsync(string Token);
-        public Task<bool> deleteTokenAsync(UserToken userToken);
+        //public  Task<string> getUserTokenAsync(string Email, string source);
+        //public Task<UserToken> getTokenAsync(string Token);
+        //public Task<bool> deleteTokenAsync(UserToken userToken);
 
     }
 }

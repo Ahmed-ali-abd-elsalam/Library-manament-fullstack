@@ -1,5 +1,6 @@
 ﻿using Application.IRepository;
 using Domain.Entities;
+using FluentEmail.Core;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -47,6 +48,22 @@ namespace Infrastructure.Repositories
         public async Task<ICollection<Member>> GetMembersAsync()
         {
             return await _context.Members.ToListAsync();
+        }
+
+        public async Task<bool> editMemberAsync(string Email, Member newMember)
+        {
+            var member = await _context.Members
+           .FirstOrDefaultAsync(m => m.Email == Email);
+
+            if (member == null)
+            {
+                return false; // member not found
+            }
+
+            member = newMember;
+            _context.Members.Update(member);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
