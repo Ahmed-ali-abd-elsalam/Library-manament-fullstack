@@ -128,7 +128,7 @@ namespace Application.Services
                 await _userManager.AddToRoleAsync(member, "Member");
                 ConfirmationToken confirmationToken = await ConfirmationTokenService.generateTokenAsync(member.Email,tokenModes.EmailValidation.ToString());                
                 string link = linkFactory.generateLink(tokenModes.EmailValidation.ToString(), member.Email, confirmationToken.id.ToString());
-                await fluentEmail
+                fluentEmail
                     .To(member.Email)
                     .Subject("Email Confirmation")
                     .Body($"To Validate Email <a href=\"{link}\">click here</a>", isHtml: true)
@@ -166,7 +166,7 @@ namespace Application.Services
             if (user == null) return false;
             ConfirmationToken confirmationToken = await ConfirmationTokenService.generateTokenAsync(email, tokenModes.PasswordReset.ToString());
             string link = linkFactory.generateLink(tokenModes.PasswordReset.ToString(), email, confirmationToken.id.ToString());
-            await fluentEmail
+            fluentEmail
                 .To(email)
                 .Subject("Password Reset")
                 .Body($"To rest your password <a href=\"{link}\">click here</a>", isHtml: true)

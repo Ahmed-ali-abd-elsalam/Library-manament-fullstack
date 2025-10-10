@@ -28,7 +28,7 @@ namespace Application.Services
                 id = Guid.NewGuid(),
                 Mode = mode
             };
-            confirmationTokenRepository.AddAsync(confimationToken);
+            await confirmationTokenRepository.AddAsync(confimationToken);
             return confimationToken;
         }
         public async Task<bool> ValidateTokenAsync(Guid Id,string Mode,string email)
