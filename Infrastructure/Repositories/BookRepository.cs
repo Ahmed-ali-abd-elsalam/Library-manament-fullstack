@@ -1,4 +1,5 @@
-﻿using Application.IRepository;
+﻿using Application.DTOs;
+using Application.IRepository;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -47,14 +48,30 @@ namespace Infrastructure.Repositories
             return await _context.Books.FirstOrDefaultAsync(B => B.Id == Id);
         }
 
-        public async Task<ICollection<Book>> GetBooksAsync(int offset, int pagesize)
+        public async Task<ICollection<Book>> GetBooksAsync(int offset, int pagesize, BooksFilter booksFilter)
         {
-            return await _context.Books.OrderBy(b=>b.Id).Skip(offset*pagesize).Take(pagesize).ToListAsync();
+            var query =  _context.Books.AsQueryable();
+            query = query.Where(book => book.IsAvailable == booksFilter.IsAvailable);
+            if(booksFilter.Title != string.Empty) 
+                query = query.Where(book => book.Title == booksFilter.Title);
+            if(booksFilter.Author != string.Empty)
+                query = query.Where(book => book.Author == booksFilter.Author);
+            if(booksFilter.PublishedYear != DateOnly.MinValue)
+                query = query.Where(book => book.PublishedYear == booksFilter.PublishedYear);
+            return await query.OrderBy(b=>b.Id).Skip(offset*pagesize).Take(pagesize).ToListAsync();
         }
 
-        public async Task<int> GetTotalCountAsync()
+        public async Task<int> GetTotalCountAsync(BooksFilter booksFilter)
         {
-            return await _context.Books.CountAsync();
+            var query = _context.Books.AsQueryable();
+            query = query.Where(book => book.IsAvailable == booksFilter.IsAvailable);
+            if (booksFilter.Title != string.Empty)
+                query = query.Where(book => book.Title == booksFilter.Title);
+            if (booksFilter.Author != string.Empty)
+                query = query.Where(book => book.Author == booksFilter.Author);
+            if (booksFilter.PublishedYear != DateOnly.MinValue)
+                query = query.Where(book => book.PublishedYear == booksFilter.PublishedYear);
+            return await query.CountAsync();
         }
 
         public async Task<Book> UpdateBookAsync(int Id, Book update)

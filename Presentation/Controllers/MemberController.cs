@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -23,6 +24,7 @@ namespace Presentation.Controllers
             return Ok(await memberService.GetMembers());
         }
         [HttpPost]
+        [Authorize(Roles ="Admin")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MemberResponseDto))]
         public async Task<IActionResult> AddMember([FromBody] RegisterMemberDto memberDto)
         {

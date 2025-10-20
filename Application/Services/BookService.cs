@@ -20,10 +20,10 @@ namespace Application.Services
         {
             _repository = repository;
         }
-        public async Task<BooksPaginatedDto> GetAllBooks(int offset, int pageSize)
+        public async Task<BooksPaginatedDto> GetAllBooks(int offset, int pageSize, BooksFilter booksFilter)
         {
-            int total = await _repository.GetTotalCountAsync();
-            var books = await _repository.GetBooksAsync(offset, pageSize);
+            int total = await _repository.GetTotalCountAsync(booksFilter);
+            var books = await _repository.GetBooksAsync(offset, pageSize,booksFilter);
             var booksDtos = new List<BookResponseDto>();
             foreach (var book in books)
             {

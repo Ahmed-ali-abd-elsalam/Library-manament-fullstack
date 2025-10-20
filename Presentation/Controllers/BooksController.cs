@@ -18,11 +18,12 @@ namespace Presentation.Controllers
             _bookService = bookService;
         }
 
-        [HttpGet]
+        [HttpPost]
         [ProducesResponseType(statusCode: 200, type: typeof(BooksPaginatedDto))]
-        public async Task<IActionResult> getBooks(int offest = 0, int count = 100)
+        public async Task<IActionResult> getBooks([FromBody] BooksFilter booksFilter,int offest = 0, int count = 100)
         {
-            return Ok(await _bookService.GetAllBooks(offest, count));
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            return Ok(await _bookService.GetAllBooks(offest, count,booksFilter));
         }
 
         [HttpPost("/api/books/add")]
@@ -36,6 +37,7 @@ namespace Presentation.Controllers
         }
         
         [HttpPut("{BookId}")]
+        [Authorize(Roles ="Admin")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> UpdateBook(int BookId,BookDto bookDto)
         {
@@ -46,6 +48,7 @@ namespace Presentation.Controllers
         }
         
         [HttpDelete("{BookId}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> Delete(int BookId)
         {

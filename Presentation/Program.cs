@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Presentation.MiddleWares;
+using Serilog;
+//using Serilog.Enrichers.ClientInfo;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,9 @@ var builder = WebApplication.CreateBuilder(args);
 string DBpassword = builder.Configuration["DBPassword"];
 string tokenSecret = builder.Configuration["tokensecret"];
 
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+    //.Enrich.WithClientIp().Enrich.WithMachineName().Enrich.WithEnvironmentName()
 builder.Services.AddControllers();
 builder.Services.AddScoped<GlobalTokenValidationFilter>();
 
@@ -68,17 +73,17 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-if (builder.Environment.IsProduction())
-{
-    builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
+//if (builder.Environment.IsProduction())
+//{
+builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
        .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"), builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Password"]);
 
-}
-else
-{
-    builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
-        .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
-}
+//}
+//else
+//{
+//builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
+        //.AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
+//}
 builder.Services.AddScoped<IBookRepository,BookRepository>();
 builder.Services.AddScoped<IBookService,BookService>();
 builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordsRepository>();
@@ -91,6 +96,7 @@ builder.Services.AddScoped<IMemberRepository,MemberRepository>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<LinkFactory>();
+builder.Host.UseSerilog();
 
 //builder.Services.AddScoped<TokenMiddleware>();
 
@@ -104,7 +110,40 @@ builder.Services.AddProblemDetails(configure=> {
 );
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Your API",
+        Version = "v1"
+    });
+
+    // Add JWT Authorization to Swagger
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter your JWT token in the format: Bearer {your token}"
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 var app = builder.Build();
 
 using(var scope = app.Services.CreateScope())
@@ -127,6 +166,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 //app.UseMiddleware<TokenMiddleware>();
 app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
 
 
 app.MapControllers();

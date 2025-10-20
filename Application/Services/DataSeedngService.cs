@@ -28,7 +28,8 @@ namespace Application.Services
                 Member admin = new Member
                 {
                     UserName="Admin",
-                    Email = "admin@library.com"
+                    Email = "admin@library.com",
+                    EmailConfirmed = true,
                 };
                 var result = await userManager.CreateAsync(admin, "adminPassword123!");
                 if (result.Succeeded)
