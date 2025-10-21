@@ -26,7 +26,6 @@ namespace Application.Services
             _memberrepository = memberrepository;
         }
 
-        //TODO should i check for email in the token if it exists?
         public async Task<BorrowRecordResponseDto> BorrowBook(int bookID,string userEmail)
         {
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);

@@ -23,7 +23,6 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [Route("login")]
-// TODO Token middleware
         public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto,CancellationToken cancellationToken) {
             if(!ModelState.IsValid) return BadRequest(ModelState);
             string source = HttpContext.Request.Headers["User-Agent"];
