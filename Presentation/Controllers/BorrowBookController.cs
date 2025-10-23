@@ -1,5 +1,5 @@
 ﻿using Application.IService;
-using Application.Result;
+using Application.Results;
 using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
