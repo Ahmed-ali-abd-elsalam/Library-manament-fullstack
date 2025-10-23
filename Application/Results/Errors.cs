@@ -11,6 +11,7 @@
         public static readonly Error EmailTaken = new Error("This is Email is Taken");
         public static readonly Error PasswordNotSecure = new Error("Password not Secure it should contain one uppercase,one lower case ,one digit , one special character and 12 characters long");
         public static readonly Error DeletionFailed = new Error("failed To Delete this entity");
-        public static readonly Error duplicateEntry = new Error("failed To Delete this entity");
+        public static readonly Error duplicateEntry = new Error("an entity already exists with this values");
+        public static readonly Error repeatedOperation = new Error("that operation is already completed");
     }
 }
