@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace Application.IService
 {
     public interface IBookService
     {
-        public Task<BooksPaginatedDto> GetAllBooks(int offset, int pageSize, BooksFilter booksFilter);
-        public  Task<BookResponseDto> AddNewBook(BookDto bookDto);
-        public Task<BookResponseDto?> UpdateBook(BookDto bookDto, int bookId);
-        public Task<bool> DeleteBook(int bookId);
+        public Task<Result<BooksPaginatedDto>> GetAllBooks(int offset, int pageSize, BooksFilter booksFilter);
+        public  Task<Result<BookResponseDto>> AddNewBook(BookDto bookDto);
+        public Task<Result<BookResponseDto?>> UpdateBook(BookDto bookDto, int bookId);
+        public Task<Result> DeleteBook(int bookId);
 
 
 

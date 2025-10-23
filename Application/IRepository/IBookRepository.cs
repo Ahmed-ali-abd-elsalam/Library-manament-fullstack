@@ -12,6 +12,8 @@ namespace Application.IRepository
     {
         public Task<int> GetTotalCountAsync(BooksFilter booksFilter);
         public Task<bool> CheckExistsAsync(int Id);
+        public Task<bool> CheckExistsAsync(string title);
+
         public Task<bool> CheckAvailableAsync(int Id);
         public Task<ICollection<Book>> GetBooksAsync(int offset,int pagesize, BooksFilter booksFilter);
         public Task<Book?> GetBookAsync(int Id);

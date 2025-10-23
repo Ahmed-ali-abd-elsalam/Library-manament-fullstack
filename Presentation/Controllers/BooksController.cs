@@ -23,7 +23,8 @@ namespace Presentation.Controllers
         public async Task<IActionResult> getBooks([FromQuery] BooksFilter booksFilter,int offest = 0, int count = 100)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            return Ok(await _bookService.GetAllBooks(offest, count,booksFilter));
+            var booksResult = await _bookService.GetAllBooks(offest, count, booksFilter);
+            return booksResult.IsSuccess? Ok(booksResult):NotFound(booksResult);
         }
 
         [HttpPost("/api/books/add")]
@@ -33,7 +34,8 @@ namespace Presentation.Controllers
 
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
-            return Ok(await _bookService.AddNewBook(bookDto));
+            var bookResult = await _bookService.AddNewBook(bookDto);
+            return bookResult.IsSuccess? Ok(bookResult) : BadRequest(bookResult);
         }
         
         [HttpPut("{BookId}")]
@@ -42,9 +44,8 @@ namespace Presentation.Controllers
         public async Task<IActionResult> UpdateBook(int BookId,BookDto bookDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var book =await _bookService.UpdateBook(bookDto,BookId);
-            if (book == null) return NotFound();
-            return Ok(book);
+            var bookResult =await _bookService.UpdateBook(bookDto,BookId);
+            return bookResult.IsSuccess ? Ok(bookResult) :NotFound(bookResult);
         }
         
         [HttpDelete("{BookId}")]
@@ -52,23 +53,9 @@ namespace Presentation.Controllers
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
         public async Task<IActionResult> Delete(int BookId)
         {
-            try
-            {
-                var book = await _bookService.DeleteBook(BookId);
-                return Accepted();
-            }
-            catch (BookDoesnotExist e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return NoContent();
-            }
+                var bookResult = await _bookService.DeleteBook(BookId);
+                return bookResult.IsSuccess?Accepted(bookResult): NotFound(bookResult);
         }
-
-
 
     }
 }

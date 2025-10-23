@@ -34,7 +34,12 @@ namespace Infrastructure.Repositories
         public async Task<bool> CheckExistsAsync(int Id)
         {
             return await _context.Books.AnyAsync(B => B.Id == Id);
-        }   
+        }
+
+        public async Task<bool> CheckExistsAsync(string title)
+        {
+            return await _context.Books.AnyAsync(B => B.Title == title);
+        }
 
         public async Task<bool>DeleteBook(Book book)
         {
