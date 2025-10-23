@@ -1,4 +1,5 @@
-﻿using Application.IRepository;
+﻿using Application.DTOs;
+using Application.IRepository;
 using Domain.Entities;
 using FluentEmail.Core;
 using Infrastructure.Data;
@@ -44,9 +45,16 @@ namespace Infrastructure.Repositories
         {
             return await _context.Members.FirstOrDefaultAsync(m => m.Email == Email);
         }
-        public async Task<ICollection<Member>> GetMembersAsync()
+        public async Task<ICollection<Member>> GetMembersAsync(MembersFilter membersfilter, int offset, int pagesize)
         {
-            return await _context.Members.ToListAsync();
+            var query = _context.Members.AsQueryable();
+            if (membersfilter.Email != string.Empty)
+                query = query.Where(book => book.Email == membersfilter.Email);
+            if (membersfilter.UserName != string.Empty)
+                query = query.Where(book => book.UserName == membersfilter.UserName);
+            if (membersfilter.PhoneNumber != string.Empty)
+                query = query.Where(book => book.PhoneNumber == membersfilter.PhoneNumber);
+            return await query.OrderBy(m => m.Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
         }
 
         public async Task<bool> editMemberAsync(string Email, Member newMember)
@@ -56,13 +64,25 @@ namespace Infrastructure.Repositories
 
             if (member == null)
             {
-                return false; // member not found
+                return false;
             }
 
             member = newMember;
             _context.Members.Update(member);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<int> GetTotalCountAsync(MembersFilter membersfilter)
+        {
+            var query = _context.Members.AsQueryable();
+            if (membersfilter.Email != string.Empty)
+                query = query.Where(book => book.Email == membersfilter.Email);
+            if (membersfilter.UserName != string.Empty)
+                query = query.Where(book => book.UserName == membersfilter.UserName);
+            if (membersfilter.PhoneNumber != string.Empty)
+                query = query.Where(book => book.PhoneNumber == membersfilter.PhoneNumber);
+            return await query.CountAsync();
         }
     }
 }

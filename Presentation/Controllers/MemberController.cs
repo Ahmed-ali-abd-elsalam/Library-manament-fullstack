@@ -18,14 +18,13 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ICollection<MemberResponseDto>))]
-        public async Task<IActionResult> getAllMembers()
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> getAllMembers(MembersFilter membersFilter,int offset=0, int pagesize=20)
         {
-            return Ok(await memberService.GetMembers());
+            return Ok(await memberService.GetMembers(offset, pagesize, membersFilter));
         }
         [HttpPost]
         [Authorize(Roles ="Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MemberResponseDto))]
         public async Task<IActionResult> AddMember([FromBody] RegisterMemberDto memberDto)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);

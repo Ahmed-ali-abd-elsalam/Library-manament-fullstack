@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.Results;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,9 @@ namespace Application.IService
 {
     public interface IMemberService
     {
-        public  Task<ICollection<MemberResponseDto>> GetMembers();
-        public  Task<MemberResponseDto> AddMember(RegisterMemberDto memberDto);
-        public Task<bool> editMember(string Email, Member newMember);
+        public  Task<Result<PaginatedMemberResponseDto>> GetMembers(int offset, int pagesize, MembersFilter membersFilter);
+        public  Task<Result<MemberResponseDto>> AddMember(RegisterMemberDto memberDto);
+        public Task<Result> editMember(string Email, Member newMember);
 
     }
 }

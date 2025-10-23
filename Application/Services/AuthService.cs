@@ -144,7 +144,8 @@ namespace Application.Services
             bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.EmailValidation.ToString(), Email);
             if (!validateToken) return Errors.InvalidToken;
             user.EmailConfirmed = true;
-            return await memberService.editMember(Email, user)? Result.success():Errors.DoesntExist;
+            var editResult = await memberService.editMember(Email, user);
+            return  editResult.IsSuccess ? Result.success():Errors.DoesntExist;
 
         }
         public async Task<Result> logOutAsync(string email, string source, CancellationToken cancellationToken)
