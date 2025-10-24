@@ -24,7 +24,7 @@ string smtpPassword = builder.Configuration["smtpPassword"];
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
-    //.Enrich.WithClientIp().Enrich.WithMachineName().Enrich.WithEnvironmentName()
+//.Enrich.WithClientIp().Enrich.WithMachineName().Enrich.WithEnvironmentName()
 builder.Services.AddControllers();
 builder.Services.AddScoped<GlobalTokenValidationFilter>();
 
@@ -48,7 +48,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
     options.InstanceName = "LibraryTokenRevoke";
 });
-builder.Services.AddDbContext<LibraryDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection").Replace("DBPassword",DBpassword)));
+builder.Services.AddDbContext<LibraryDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection").Replace("DBPassword", DBpassword)));
 builder.Services.AddIdentity<Member, IdentityRole>(options =>
 {
     options.Password.RequireNonAlphanumeric = true;
@@ -77,24 +77,24 @@ builder.Services.AddAuthentication(options =>
 
 //if (builder.Environment.IsProduction())
 //{
-builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
-       .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"), builder.Configuration["Email:SenderEmail"], smtpPassword);
+//builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
+//       .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"), builder.Configuration["Email:SenderEmail"], smtpPassword);
 
 //}
 //else
 //{
-//builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
-//.AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
+builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], builder.Configuration["Email:Sender"])
+.AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
 //}
-builder.Services.AddScoped<IBookRepository,BookRepository>();
-builder.Services.AddScoped<IBookService,BookService>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordsRepository>();
 builder.Services.AddScoped<IBorrowRecordService, BorrowRecordService>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IConfirmationTokenRepository, ConfirmationTokenRepository>();
 builder.Services.AddScoped<IConfirmationTokenService, ConfirmationTokenService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
-builder.Services.AddScoped<IMemberRepository,MemberRepository>();
+builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -104,12 +104,13 @@ builder.Host.UseSerilog();
 //builder.Services.AddScoped<TokenMiddleware>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails(configure=> {
+builder.Services.AddProblemDetails(configure =>
+{
     configure.CustomizeProblemDetails = options =>
     {
         options.ProblemDetails.Extensions.TryAdd("Request Id", options.HttpContext.TraceIdentifier);
     };
-    }
+}
 );
 
 builder.Services.AddEndpointsApiExplorer();
@@ -149,7 +150,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 var app = builder.Build();
 
-using(var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     var serviceProvider = scope.ServiceProvider;
     await DataSeedingService.SeedDataAsync(serviceProvider);

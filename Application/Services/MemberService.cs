@@ -12,6 +12,7 @@ namespace Application.Services
     {
         private readonly IMemberRepository _repository;
         private readonly UserManager<Member> _userManager;
+        private readonly IUnitOfWork unitOfWork;
 
         public MemberService(IMemberRepository repository, UserManager<Member> userManager)
         {
@@ -19,12 +20,12 @@ namespace Application.Services
             _userManager = userManager;
         }
 
-        public async Task<Result<PaginatedMemberResponseDto>> GetMembers(int offset,int pagesize,MembersFilter membersFilter)
+        public async Task<Result<PaginatedMemberResponseDto>> GetMembers(int offset, int pagesize, MembersFilter membersFilter)
         {
             int total = await _repository.GetTotalCountAsync(membersFilter);
             bool HasNext = offset + 1 * pagesize < total;
             bool HasPrev = offset > 0;
-            var members = await _repository.GetMembersAsync(membersFilter,offset,pagesize);
+            var members = await _repository.GetMembersAsync(membersFilter, offset, pagesize);
             List<MemberResponseDto> membersDtos = [];
             foreach (var member in members)
             {
@@ -38,7 +39,7 @@ namespace Application.Services
                 HasPrev = HasPrev,
                 Offset = offset,
                 pageSize = pagesize
-           };
+            };
         }
 
         public async Task<Result<MemberResponseDto>> AddMember(RegisterMemberDto memberDto)
@@ -50,23 +51,26 @@ namespace Application.Services
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(member, "Member");
+
                 return member.ToMemberResponseDto();
             }
             else
             {
                 foreach (var error in result.Errors)
                 {
-                return new Error(error.Description);
+                    return new Error(error.Description);
                 }
                 Console.WriteLine(result.Errors);
                 return Errors.PasswordNotSecure;
             }
         }
 
-        //TODO fix erros
         public async Task<Result> editMember(string Email, Member newMember)
         {
-            return await _repository.editMemberAsync(Email, newMember) ? Result.success(): Errors.DoesntExist;
+            if (await _repository.editMemberAsync(Email, newMember))
+                return Errors.DoesntExist;
+            await unitOfWork.SaveChangesAsync();
+            return Result.success();
         }
 
 

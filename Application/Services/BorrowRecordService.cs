@@ -12,12 +12,14 @@ namespace Application.Services
         private readonly IBorrowRecordRepository _repository;
         private readonly IBookRepository _bookrepository;
         private readonly IMemberRepository _memberrepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public BorrowRecordService(IBorrowRecordRepository repository, IBookRepository bookrepository, IMemberRepository memberrepository)
+        public BorrowRecordService(IBorrowRecordRepository repository, IBookRepository bookrepository, IMemberRepository memberrepository, IUnitOfWork unitOfWork)
         {
             _repository = repository;
             _bookrepository = bookrepository;
             _memberrepository = memberrepository;
+            this.unitOfWork = unitOfWork;
         }
 
         public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, string userEmail)
@@ -38,7 +40,8 @@ namespace Application.Services
                 Book = book,
                 BorrowDate = DateOnly.FromDateTime(DateTime.UtcNow)
             });
-            return Result<BorrowRecordResponseDto>.success(borrowRecord.BorrowRecordtoDto());
+            await unitOfWork.SaveChangesAsync();
+            return borrowRecord.BorrowRecordtoDto();
         }
         public async Task<Result<BorrowRecordResponseDto?>> ReturnBook(int bookID, string userEmail)
         {
@@ -51,6 +54,7 @@ namespace Application.Services
             book.IsAvailable = true;
             await _bookrepository.UpdateBookAsync(bookID, book);
             borrowRecord = await _repository.ReturnBookAsync(borrowRecord.Id, DateOnly.FromDateTime(DateTime.UtcNow));
+            await unitOfWork.SaveChangesAsync();
             return borrowRecord.BorrowRecordtoDto();
 
         }

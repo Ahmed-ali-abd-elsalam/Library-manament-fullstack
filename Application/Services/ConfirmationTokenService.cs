@@ -12,10 +12,12 @@ namespace Application.Services
     public class ConfirmationTokenService : IConfirmationTokenService
     {
         private readonly IConfirmationTokenRepository confirmationTokenRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public ConfirmationTokenService(IConfirmationTokenRepository ConfirmationTokenRepository)
+        public ConfirmationTokenService(IConfirmationTokenRepository ConfirmationTokenRepository, IUnitOfWork unitOfWork)
         {
             confirmationTokenRepository = ConfirmationTokenRepository;
+            this.unitOfWork = unitOfWork;
         }
 
         public async Task<ConfirmationToken> generateTokenAsync(string Email,string mode)
@@ -29,6 +31,7 @@ namespace Application.Services
                 Mode = mode
             };
             await confirmationTokenRepository.AddAsync(confimationToken);
+            await unitOfWork.SaveChangesAsync();
             return confimationToken;
         }
         public async Task<bool> ValidateTokenAsync(Guid Id,string Mode,string email)
@@ -39,6 +42,7 @@ namespace Application.Services
                 return false;
             }
             await confirmationTokenRepository.DeleteAsync(Id);
+            await unitOfWork.SaveChangesAsync();
             return true;
         }
     }

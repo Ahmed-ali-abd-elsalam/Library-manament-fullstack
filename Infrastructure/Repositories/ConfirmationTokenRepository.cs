@@ -29,7 +29,6 @@ namespace Infrastructure.Repositories
         public async Task AddAsync(ConfirmationToken token)
         {
             await _context.ConfirmationToken.AddAsync(token);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -39,7 +38,6 @@ namespace Infrastructure.Repositories
             if (token != null)
             {
                 _context.ConfirmationToken.Remove(token);
-                await _context.SaveChangesAsync();
             }
         }
 

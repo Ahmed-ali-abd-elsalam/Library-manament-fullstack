@@ -1,18 +1,12 @@
 ﻿using Application.DTOs;
 using Application.IRepository;
 using Domain.Entities;
-using FluentEmail.Core;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class MemberRepository:IMemberRepository
+    public class MemberRepository : IMemberRepository
     {
         private readonly LibraryDbContext _context;
 
@@ -24,13 +18,12 @@ namespace Infrastructure.Repositories
         public async Task<Member> AddMemberAsync(Member member)
         {
             await _context.Members.AddAsync(member);
-            await _context.SaveChangesAsync();
             return member;
         }
 
         public async Task<bool> CheckExistsAsyncById(string Id)
         {
-            return await _context.Members.AnyAsync(m=>m.Id == Id);
+            return await _context.Members.AnyAsync(m => m.Id == Id);
 
         }
         public async Task<bool> CheckExistsAsyncByEmail(string Email)
@@ -69,7 +62,6 @@ namespace Infrastructure.Repositories
 
             member = newMember;
             _context.Members.Update(member);
-            await _context.SaveChangesAsync();
             return true;
         }
 
