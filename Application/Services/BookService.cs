@@ -4,40 +4,39 @@ using Application.IService;
 using Application.Mappers;
 using Application.Results;
 using Domain.Entities;
-using Domain.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class BookService :IBookService
+    public class BookService : IBookService
     {
         private readonly IBookRepository _repository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public BookService(IBookRepository repository)
+        public BookService(IBookRepository repository, IUnitOfWork unitOfWork)
         {
             _repository = repository;
+            this.unitOfWork = unitOfWork;
         }
         public async Task<Result<BooksPaginatedDto>> GetAllBooks(int offset, int pageSize, BooksFilter booksFilter)
         {
             int total = await _repository.GetTotalCountAsync(booksFilter);
-            var books = await _repository.GetBooksAsync(offset, pageSize,booksFilter);
+            var books = await _repository.GetBooksAsync(offset, pageSize, booksFilter);
             var booksDtos = new List<BookResponseDto>();
             foreach (var book in books)
             {
                 booksDtos.Add(book.BookToDtoMapper());
             }
-            bool HasNext = offset+1 * pageSize < total;
+            bool HasNext = offset + 1 * pageSize < total;
             bool HasPrev = offset > 0;
-            return new BooksPaginatedDto { Books = booksDtos,
+            return new BooksPaginatedDto
+            {
+                Books = booksDtos,
                 Total = total,
                 HasNext = HasNext,
                 HasPrev = HasPrev,
                 Offset = offset,
-                pageSize = pageSize };
+                pageSize = pageSize
+            };
         }
         public async Task<Result<BookResponseDto>> AddNewBook(BookDto bookDto)
         {
@@ -51,9 +50,10 @@ namespace Application.Services
                 IsAvailable = true
             };
             book = await _repository.AddBookAsync(book);
+            await unitOfWork.SaveChangesAsync();
             return book.BookToDtoMapper();
         }
-        public async Task<Result<BookResponseDto?>> UpdateBook(BookDto bookDto,int bookId)
+        public async Task<Result<BookResponseDto?>> UpdateBook(BookDto bookDto, int bookId)
         {
             if (!await _repository.CheckExistsAsync(bookId))
                 return Errors.DoesntExist;
@@ -64,15 +64,24 @@ namespace Application.Services
                 PublishedYear = bookDto.PublishedYear,
                 IsAvailable = true
             };
-            book = await _repository.UpdateBookAsync(bookId,book);
+            book = await _repository.UpdateBookAsync(bookId, book);
+            await unitOfWork.SaveChangesAsync();
             return book.BookToDtoMapper();
         }
         public async Task<Result> DeleteBook(int bookId)
         {
-            if (!await _repository.CheckExistsAsync(bookId))
+            Book? book = await _repository.GetBookAsync(bookId);
+            if (book is null)
                 return Result.Fail(Errors.DoesntExist);
-            Book book = await _repository.GetBookAsync(bookId);
-            return await _repository.DeleteBook(book)?Result.success() : Result.Fail(Errors.DeletionFailed);
+            await _repository.DeleteBook(book);
+            await unitOfWork.SaveChangesAsync();
+            return Result.success();
+        }
+
+        public async Task<Result<BookResponseDto>> GetBook(int BookId)
+        {
+            Book? book = await _repository.GetBookAsync(BookId);
+            return book is null ? book!.BookToDtoMapper() : Errors.DoesntExist;
         }
     }
 }

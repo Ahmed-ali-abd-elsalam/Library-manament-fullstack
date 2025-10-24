@@ -3,11 +3,6 @@ using Application.IRepository;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
@@ -20,9 +15,8 @@ namespace Infrastructure.Repositories
         }
         public async Task<Book> AddBookAsync(Book book)
         {
-             await _context.Books.AddAsync(book);
-            await _context.SaveChangesAsync();
-            return book;
+            var entry = await _context.Books.AddAsync(book);
+            return entry.Entity;
         }
 
         public async Task<bool> CheckAvailableAsync(int Id)
@@ -41,11 +35,9 @@ namespace Infrastructure.Repositories
             return await _context.Books.AnyAsync(B => B.Title == title);
         }
 
-        public async Task<bool>DeleteBook(Book book)
+        public async Task DeleteBook(Book book)
         {
             _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
-            return true;
         }
 
         public async Task<Book?> GetBookAsync(int Id)
@@ -55,15 +47,15 @@ namespace Infrastructure.Repositories
 
         public async Task<ICollection<Book>> GetBooksAsync(int offset, int pagesize, BooksFilter booksFilter)
         {
-            var query =  _context.Books.AsQueryable();
+            var query = _context.Books.AsQueryable();
             query = query.Where(book => book.IsAvailable == booksFilter.IsAvailable);
-            if(booksFilter.Title != string.Empty) 
+            if (booksFilter.Title != string.Empty)
                 query = query.Where(book => book.Title == booksFilter.Title);
-            if(booksFilter.Author != string.Empty)
+            if (booksFilter.Author != string.Empty)
                 query = query.Where(book => book.Author == booksFilter.Author);
-            if(booksFilter.PublishedYear != DateOnly.MinValue)
+            if (booksFilter.PublishedYear != DateOnly.MinValue)
                 query = query.Where(book => book.PublishedYear == booksFilter.PublishedYear);
-            return await query.OrderBy(b=>b.Id).Skip(offset*pagesize).Take(pagesize).ToListAsync();
+            return await query.OrderBy(b => b.Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
         }
 
         public async Task<int> GetTotalCountAsync(BooksFilter booksFilter)
@@ -85,7 +77,6 @@ namespace Infrastructure.Repositories
             book.Title = update.Title;
             book.Author = update.Author;
             book.PublishedYear = update.PublishedYear;
-            await _context.SaveChangesAsync();
             return book;
         }
     }
