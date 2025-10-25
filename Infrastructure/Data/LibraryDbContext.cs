@@ -1,11 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Data
 {
@@ -39,6 +34,11 @@ namespace Infrastructure.Data
                 .HasMany(M => M.BorrowRecords)
                 .WithOne(Br => Br.Member)
                 .HasForeignKey(Br => Br.MemberId);
+
+
+            modelBuilder.Entity<BorrowRecord>()
+            .Property(b => b.Status)
+            .HasConversion<string>();
         }
     }
 }

@@ -74,5 +74,16 @@ namespace Application.Services
         }
 
 
+        public async Task<Result<MemberResponseDto>> GetMember(string Email)
+        {
+            if (await _userManager.FindByEmailAsync(Email) != null) return Errors.DoesntExist;
+            Member user = await _userManager.FindByEmailAsync(Email);
+            return user!.ToMemberResponseDto();
+        }
+
+
+
+
+
     }
 }

@@ -1,11 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domain.Entities
+﻿namespace Domain.Entities
 {
+    public enum borrowStatus
+    {
+        Pending,
+        Approved,
+        Denied,
+        Removed,
+        Returned,
+        Borrowed
+
+    }
     public class BorrowRecord
     {
         public int Id { get; set; }
@@ -13,6 +17,7 @@ namespace Domain.Entities
         public DateOnly? ReturnDate { get; set; }
         public Book Book { get; set; }
         public int BookId { get; set; }
+        public borrowStatus Status { get; set; }
         public Member Member { get; set; }
         public string MemberId { get; set; }
     }

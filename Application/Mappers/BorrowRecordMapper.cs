@@ -1,10 +1,5 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Mappers
 {
@@ -17,8 +12,10 @@ namespace Application.Mappers
                 Id = borrowRecord.Id,
                 BookId = borrowRecord.BookId,
                 BorrowDate = borrowRecord.BorrowDate,
+                status = borrowRecord.Status.ToString(),
                 MemberId = borrowRecord.MemberId,
                 ReturnDate = borrowRecord.ReturnDate,
+
             };
         }
     }

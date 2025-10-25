@@ -38,12 +38,13 @@ namespace Application.Services
                 MemberId = user.Id,
                 Member = user,
                 Book = book,
+                Status = borrowStatus.Pending,
                 BorrowDate = DateOnly.FromDateTime(DateTime.UtcNow)
             });
             await unitOfWork.SaveChangesAsync();
             return borrowRecord.BorrowRecordtoDto();
         }
-        public async Task<Result<BorrowRecordResponseDto?>> ReturnBook(int bookID, string userEmail)
+        public async Task<Result<BorrowRecordResponseDto>> ReturnBook(int bookID, string userEmail)
         {
             Member user = await _memberrepository.GetMemberAsyncByEmail(userEmail);
             if (!await _repository.CheckExistsAsync(bookID, user.Id))
@@ -56,7 +57,53 @@ namespace Application.Services
             borrowRecord = await _repository.ReturnBookAsync(borrowRecord.Id, DateOnly.FromDateTime(DateTime.UtcNow));
             await unitOfWork.SaveChangesAsync();
             return borrowRecord.BorrowRecordtoDto();
-
         }
+
+        public async Task<Result<PaginatedBorrowRecordResponseDto>> GetMemberBorrowRecords(string Email, int offset, int pagesize)
+        {
+            if (await _memberrepository.CheckExistsAsyncByEmail(Email) != null) return Errors.DoesntExist;
+            Member member = await _memberrepository.GetMemberAsyncByEmail(Email);
+            int total = await _repository.getTotalCountAsync(member.Id);
+            bool HasNext = offset + 1 * pagesize < total;
+            bool HasPrev = offset > 0;
+            var borrowRecords = await _repository.GetBorrowRecordsAsync(member!.Id, offset, pagesize);
+            List<BorrowRecordResponseDto> borrowRecordResponseDtos = [];
+            foreach (var borrowrecord in borrowRecords)
+            {
+                borrowRecordResponseDtos.Add(borrowrecord.BorrowRecordtoDto());
+            }
+            return new PaginatedBorrowRecordResponseDto
+            {
+                BorrowRecords = borrowRecordResponseDtos,
+                Total = total,
+                HasNext = HasNext,
+                HasPrev = HasPrev,
+                Offset = offset,
+                pageSize = pagesize
+            };
+        }
+
+        public async Task<Result<PaginatedBorrowRecordResponseDto>> GetAllBorrowRecords(int offset, int pagesize)
+        {
+            int total = await _repository.getTotalCountAsync();
+            bool HasNext = offset + 1 * pagesize < total;
+            bool HasPrev = offset > 0;
+            var borrowRecords = await _repository.GetBorrowRecordsAsync(offset, pagesize);
+            List<BorrowRecordResponseDto> borrowRecordResponseDtos = [];
+            foreach (var borrowrecord in borrowRecords)
+            {
+                borrowRecordResponseDtos.Add(borrowrecord.BorrowRecordtoDto());
+            }
+            return new PaginatedBorrowRecordResponseDto
+            {
+                BorrowRecords = borrowRecordResponseDtos,
+                Total = total,
+                HasNext = HasNext,
+                HasPrev = HasPrev,
+                Offset = offset,
+                pageSize = pagesize
+            };
+        }
+
     }
 }
