@@ -4,6 +4,7 @@ using Application.IService;
 using Application.Mappers;
 using Application.Results;
 using Domain.Entities;
+using System.Security.Claims;
 
 namespace Application.Services
 {
@@ -25,7 +26,7 @@ namespace Application.Services
         public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, string userEmail)
         {
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);
-            if (!bookExists) return Errors.DoesntExist;
+            if (!bookExists) return Errors.DoesntExist(typeof(Book).Name);
             bool bookAvailable = await _bookrepository.CheckAvailableAsync(bookID);
             if (!bookAvailable) return Errors.notAvailable;
             Book book = await _bookrepository.GetBookAsync(bookID);
@@ -48,7 +49,7 @@ namespace Application.Services
         {
             Member user = await _memberrepository.GetMemberAsyncByEmail(userEmail);
             if (!await _repository.CheckExistsAsync(bookID, user.Id))
-                return Errors.DoesntExist;
+                return Errors.DoesntExist(typeof(Member).Name);
             BorrowRecord borrowRecord = await _repository.GetBorrowRecordAsync(bookID, user.Id);
             if (borrowRecord.ReturnDate != null) return Errors.repeatedOperation;
             Book book = await _bookrepository.GetBookAsync(bookID);
@@ -61,7 +62,7 @@ namespace Application.Services
 
         public async Task<Result<PaginatedBorrowRecordResponseDto>> GetMemberBorrowRecords(string Email, int offset, int pagesize)
         {
-            if (await _memberrepository.CheckExistsAsyncByEmail(Email) != null) return Errors.DoesntExist;
+            if (!await _memberrepository.CheckExistsAsyncByEmail(Email)) return Errors.DoesntExist(typeof(Member).Name);
             Member member = await _memberrepository.GetMemberAsyncByEmail(Email);
             int total = await _repository.getTotalCountAsync(member.Id);
             bool HasNext = offset + 1 * pagesize < total;
@@ -105,5 +106,18 @@ namespace Application.Services
             };
         }
 
+        public async Task<Result<BorrowRecordResponseDto>> GetBorrowRecord(int id, ClaimsPrincipal User)
+        {
+            // if admin return BR // if owner return BR // if not owner return not owned // if BR doesnt exist
+            var email = User.FindFirst(ClaimTypes.Email);
+            if (email == null)  return Errors.InvalidToken;
+            Member member = await _memberrepository.GetMemberAsyncByEmail(email.Value);
+            if (member == null) return Errors.DoesntExist(typeof(Member).Name);
+            bool isAdmin = User.IsInRole("Admin");
+            if (!await _repository.CheckExistsAsync(id)) return Errors.DoesntExist(typeof(BorrowRecord).Name);
+            var borrowRecord = await _repository.GetBorrowRecordAsync(id);
+            if (borrowRecord.MemberId != member.Id & !isAdmin) return Errors.DoesntBelong;
+            return borrowRecord.BorrowRecordtoDto();
+        }
     }
 }

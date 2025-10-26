@@ -38,15 +38,15 @@ namespace Infrastructure.Repositories
         {
             return await _context.Members.FirstOrDefaultAsync(m => m.Email == Email);
         }
-        public async Task<ICollection<Member>> GetMembersAsync(MembersFilter membersfilter, int offset, int pagesize)
+        public async Task<ICollection<Member>> GetMembersAsync(MembersFilter memberFilter, int offset, int pagesize)
         {
             var query = _context.Members.AsQueryable();
-            if (membersfilter.Email != string.Empty)
-                query = query.Where(book => book.Email == membersfilter.Email);
-            if (membersfilter.UserName != string.Empty)
-                query = query.Where(book => book.UserName == membersfilter.UserName);
-            if (membersfilter.PhoneNumber != string.Empty)
-                query = query.Where(book => book.PhoneNumber == membersfilter.PhoneNumber);
+            if (memberFilter.Email != string.Empty)
+                query = query.Where(book => book.Email == memberFilter.Email);
+            if (memberFilter.UserName != string.Empty)
+                query = query.Where(book => book.UserName == memberFilter.UserName);
+            if (memberFilter.PhoneNumber != string.Empty)
+                query = query.Where(book => book.PhoneNumber == memberFilter.PhoneNumber);
             return await query.OrderBy(m => m.Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
         }
 
@@ -60,20 +60,22 @@ namespace Infrastructure.Repositories
                 return false;
             }
 
-            member = newMember;
+            member.UserName = newMember.UserName;
+            member.PhoneNumber = newMember.PhoneNumber;
+            member.EmailConfirmed = newMember.EmailConfirmed;
             _context.Members.Update(member);
             return true;
         }
 
-        public async Task<int> GetTotalCountAsync(MembersFilter membersfilter)
+        public async Task<int> GetTotalCountAsync(MembersFilter memberFilter)
         {
             var query = _context.Members.AsQueryable();
-            if (membersfilter.Email != string.Empty)
-                query = query.Where(book => book.Email == membersfilter.Email);
-            if (membersfilter.UserName != string.Empty)
-                query = query.Where(book => book.UserName == membersfilter.UserName);
-            if (membersfilter.PhoneNumber != string.Empty)
-                query = query.Where(book => book.PhoneNumber == membersfilter.PhoneNumber);
+            if (memberFilter.Email != string.Empty)
+                query = query.Where(book => book.Email == memberFilter.Email);
+            if (memberFilter.UserName != string.Empty)
+                query = query.Where(book => book.UserName == memberFilter.UserName);
+            if (memberFilter.PhoneNumber != string.Empty)
+                query = query.Where(book => book.PhoneNumber == memberFilter.PhoneNumber);
             return await query.CountAsync();
         }
     }

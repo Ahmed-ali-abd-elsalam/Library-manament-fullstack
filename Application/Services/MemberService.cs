@@ -45,7 +45,7 @@ namespace Application.Services
         public async Task<Result<MemberResponseDto>> AddMember(RegisterMemberDto memberDto)
         {
 
-            if (await _userManager.FindByEmailAsync(memberDto.Email) != null) return Errors.DoesntExist;
+            if (await _userManager.FindByEmailAsync(memberDto.Email) != null) return Errors.DoesntExist(typeof(Member).Name);
             Member member = memberDto.RegisterDtoToMember();
             var result = await _userManager.CreateAsync(member, memberDto.Password);
             if (result.Succeeded)
@@ -67,8 +67,8 @@ namespace Application.Services
 
         public async Task<Result> editMember(string Email, Member newMember)
         {
-            if (await _repository.editMemberAsync(Email, newMember))
-                return Errors.DoesntExist;
+            if (!await _repository.editMemberAsync(Email, newMember))
+                return Errors.DoesntExist(typeof(Member).Name);
             await unitOfWork.SaveChangesAsync();
             return Result.success();
         }
@@ -76,7 +76,7 @@ namespace Application.Services
 
         public async Task<Result<MemberResponseDto>> GetMember(string Email)
         {
-            if (await _userManager.FindByEmailAsync(Email) != null) return Errors.DoesntExist;
+            if (await _userManager.FindByEmailAsync(Email) != null) return Errors.DoesntExist(typeof(Member).Name);
             Member user = await _userManager.FindByEmailAsync(Email);
             return user!.ToMemberResponseDto();
         }

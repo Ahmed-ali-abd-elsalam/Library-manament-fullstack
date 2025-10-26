@@ -3,7 +3,7 @@
     public class Errors
     {
         public static readonly Error WrongPassword = new Error("Enter your password");
-        public static readonly Error DoesntExist = new Error("Requested entity doesn't exist");
+        public static  Error DoesntExist(string entity) => new Error($"Requested {entity} doesn't exist");
         public static readonly Error notAvailable = new Error("requested entity not Available");
         public static readonly Error EmailNotConfirmed = new Error("Email is Not Confirmed");
         public static readonly Error RefreshToken = new Error("Expired Refresh Token please login again");
@@ -13,5 +13,7 @@
         public static readonly Error DeletionFailed = new Error("failed To Delete this entity");
         public static readonly Error duplicateEntry = new Error("an entity already exists with this values");
         public static readonly Error repeatedOperation = new Error("that operation is already completed");
+        public static readonly Error DoesntBelong = new Error("tha enity doesn't belong to the logged in user");
+        
     }
 }

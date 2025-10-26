@@ -1,5 +1,6 @@
 ﻿using Application.IService;
 using Application.Results;
+using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -26,7 +27,7 @@ namespace Presentation.Controllers
             var borrowRecordResult = await borrowRecordService.BorrowBook(BookId, Email);
             if (!borrowRecordResult.IsSuccess)
             {
-                if (borrowRecordResult.error == Errors.DoesntExist) return NotFound(borrowRecordResult);
+                if (borrowRecordResult.error == Errors.DoesntExist(typeof(Book).Name)) return NotFound(borrowRecordResult);
                 if (borrowRecordResult.error == Errors.notAvailable) return BadRequest(borrowRecordResult);
             }
             return Ok(borrowRecordResult);
@@ -41,19 +42,22 @@ namespace Presentation.Controllers
             var borrowRecordResult = await borrowRecordService.ReturnBook(BookId, Email);
             if (!borrowRecordResult.IsSuccess)
             {
-                if (borrowRecordResult.error == Errors.DoesntExist) return NotFound(borrowRecordResult);
+                if (borrowRecordResult.error == Errors.DoesntExist(typeof(Member).Name)) return NotFound(borrowRecordResult);
                 if (borrowRecordResult.error == Errors.repeatedOperation) return Accepted(borrowRecordResult);
             }
             return Ok(borrowRecordResult);
         }
 
         /**TODO add apis for 
-            get self records
-            get all records for admin auth
-            get member records for admin auth
-            get single record
-            add remove dit single record
-            and test them
+            
+            add return date and borrow duration to database and borrow controller 
+            get self records        done
+            get all records for admin auth      done
+            get member records for admin auth       done
+            get single record       done
+            add remove dit single record        planned
+            and test them partially
+            
         **/
 
         [HttpGet("me")]
@@ -64,41 +68,46 @@ namespace Presentation.Controllers
             var borrowRecordResult = await borrowRecordService.GetMemberBorrowRecords(Email, offset, pagesize);
             if (!borrowRecordResult.IsSuccess)
             {
-                if (borrowRecordResult.error == Errors.DoesntExist) return NotFound(borrowRecordResult);
+                if (borrowRecordResult.error == Errors.DoesntExist(typeof(Member).Name)) return NotFound(borrowRecordResult);
             }
             return Ok(borrowRecordResult);
         }
 
-        [HttpGet("/{Email}")]
+        [HttpGet("member/{Email}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> memberBorrowRecord(string Email, int offset = 0, int pagesize = 10)
+        public async Task<IActionResult> memberBorrowRecords(string Email, int offset = 0, int pagesize = 10)
         {
             var borrowRecordResult = await borrowRecordService.GetMemberBorrowRecords(Email, offset, pagesize);
             if (!borrowRecordResult.IsSuccess)
             {
-                if (borrowRecordResult.error == Errors.DoesntExist) return NotFound(borrowRecordResult);
+                if (borrowRecordResult.error == Errors.DoesntExist(typeof(Member).Name)) return NotFound(borrowRecordResult);
             }
             return Ok(borrowRecordResult);
         }
-        [HttpGet("/All")]
+        [HttpGet("All")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AllBorrowRecord(int offset = 0, int pagesize = 10)
+        public async Task<IActionResult> AllBorrowRecords(int offset = 0, int pagesize = 10)
         {
             var borrowRecordResult = await borrowRecordService.GetAllBorrowRecords(offset, pagesize);
-            if (!borrowRecordResult.IsSuccess)
-            {
-                if (borrowRecordResult.error == Errors.DoesntExist) return NotFound(borrowRecordResult);
-            }
+            //if (!borrowRecordResult.IsSuccess)
+            //{
+            //    if (borrowRecordResult.error == Errors.DoesntExist) return NotFound(borrowRecordResult);
+            //}
             return Ok(borrowRecordResult);
         }
 
-        [HttpGet("/{id}")]
+        [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> singleBorrowRecord(int id)
         {
             //check if current user has admin role he can check any records else check if the record is owned by the logged in user
             var borrowRecordResult = await borrowRecordService.GetBorrowRecord(id, User);
-            return !borrowRecordResult.IsSuccess ? Ok(borrowRecordResult) : NotFound(borrowRecordResult);
+            if (!borrowRecordResult.IsSuccess)
+            {
+                if (borrowRecordResult.error == Errors.DoesntBelong) return Unauthorized(borrowRecordResult);
+                return NotFound(borrowRecordResult);
+            }
+            return Ok(borrowRecordResult);
         }
 
 

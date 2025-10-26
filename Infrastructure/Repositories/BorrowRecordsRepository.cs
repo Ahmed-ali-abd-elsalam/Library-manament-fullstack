@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace Infrastructure.Repositories
 {
@@ -15,12 +16,20 @@ namespace Infrastructure.Repositories
         }
         public async Task<bool> CheckExistsAsync(int bookId, string MemberId)
         {
-            return await _context.BorrowRecords.AnyAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
+            return await _context.BorrowRecords.AsNoTracking().AnyAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
+        }
+        public async Task<bool> CheckExistsAsync(int BorrowRecordId)
+        {
+            return await _context.BorrowRecords.AsNoTracking().AnyAsync(BR => BR.Id == BorrowRecordId);
         }
 
         public async Task<BorrowRecord?> GetBorrowRecordAsync(int bookId, string MemberId)
         {
-            return await _context.BorrowRecords.OrderByDescending(Br => Br.ReturnDate).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
+            return await _context.BorrowRecords.AsNoTracking().OrderByDescending(Br => Br.ReturnDate).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
+        }
+        public async Task<BorrowRecord?> GetBorrowRecordAsync(int BorrowRecordId)
+        {
+            return await _context.BorrowRecords.AsNoTracking().FirstOrDefaultAsync(BR => BR.Id == BorrowRecordId);
         }
 
         public async Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync(int offset, int pagesize)
@@ -51,5 +60,6 @@ namespace Infrastructure.Repositories
                 return _context.BorrowRecords.CountAsync();
             return _context.BorrowRecords.Where(Br => Br.MemberId == MemberId).CountAsync();
         }
+
     }
 }

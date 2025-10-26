@@ -56,7 +56,7 @@ namespace Application.Services
         public async Task<Result<BookResponseDto?>> UpdateBook(BookDto bookDto, int bookId)
         {
             if (!await _repository.CheckExistsAsync(bookId))
-                return Errors.DoesntExist;
+                return Errors.DoesntExist(typeof(Book).Name); ;
             Book book = new Book
             {
                 Author = bookDto.Author,
@@ -72,7 +72,7 @@ namespace Application.Services
         {
             Book? book = await _repository.GetBookAsync(bookId);
             if (book is null)
-                return Result.Fail(Errors.DoesntExist);
+                return Result.Fail(Errors.DoesntExist(typeof(Book).Name));
             await _repository.DeleteBook(book);
             await unitOfWork.SaveChangesAsync();
             return Result.success();
@@ -81,7 +81,7 @@ namespace Application.Services
         public async Task<Result<BookResponseDto>> GetBook(int BookId)
         {
             Book? book = await _repository.GetBookAsync(BookId);
-            return book is null ? book!.BookToDtoMapper() : Errors.DoesntExist;
+            return book is null ? book!.BookToDtoMapper() : Errors.DoesntExist(typeof(Book).Name);
         }
     }
 }

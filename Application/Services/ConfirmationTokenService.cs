@@ -31,7 +31,6 @@ namespace Application.Services
                 Mode = mode
             };
             await confirmationTokenRepository.AddAsync(confimationToken);
-            await unitOfWork.SaveChangesAsync();
             return confimationToken;
         }
         public async Task<bool> ValidateTokenAsync(Guid Id,string Mode,string email)
@@ -42,7 +41,6 @@ namespace Application.Services
                 return false;
             }
             await confirmationTokenRepository.DeleteAsync(Id);
-            await unitOfWork.SaveChangesAsync();
             return true;
         }
     }

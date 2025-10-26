@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.IRepository;
 using Application.IService;
 using Application.Mappers;
 using Application.Results;
@@ -17,12 +18,13 @@ namespace Application.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<Member> _userManager;
-        private readonly IMemberService memberService;
+        private readonly IMemberRepository memberRepository;
         private readonly IUserTokenService tokenService;
         private readonly IDistributedCache cache;
         private readonly IFluentEmail fluentEmail;
         private readonly IConfirmationTokenService ConfirmationTokenService;
         private readonly LinkFactory linkFactory;
+        private readonly IUnitOfWork unitOfWork;
 
         public AuthService(UserManager<Member> userManager,
             IUserTokenService tokenService,
@@ -30,7 +32,8 @@ namespace Application.Services
             IFluentEmail fluentEmail,
             IConfirmationTokenService ConfirmEmailService,
             LinkFactory linkFactory,
-            IMemberService memberService)
+            IMemberRepository memberRepository,
+            IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             this.tokenService = tokenService;
@@ -38,13 +41,14 @@ namespace Application.Services
             this.fluentEmail = fluentEmail;
             this.ConfirmationTokenService = ConfirmEmailService;
             this.linkFactory = linkFactory;
-            this.memberService = memberService;
+            this.memberRepository = memberRepository;
+            this.unitOfWork = unitOfWork;
         }
 
         public async Task<Result<LoginResponseDto>> Login(LoginMemberDto loginMemberDto, string source, CancellationToken cancellationToken)
         {
             Member user = await _userManager.FindByEmailAsync(loginMemberDto.Email);
-            if (user == null) return Errors.DoesntExist;
+            if (user == null) return Errors.DoesntExist(typeof(Member).Name);
             bool result = await _userManager.CheckPasswordAsync(user, loginMemberDto.Password);
             if (result == false) return Errors.WrongPassword;
             if (!user.EmailConfirmed) return Errors.EmailNotConfirmed;
@@ -53,7 +57,7 @@ namespace Application.Services
             string ResponseToken = await cache.GetStringAsync(key, cancellationToken);
             string Refresh_token = await tokenService.createTokenAsync(user, userRoles, "Refresh Token", source);
             user.RefreshToken = Refresh_token;
-            await memberService.editMember(loginMemberDto.Email, user);
+            await memberRepository.editMemberAsync(loginMemberDto.Email, user);
             if (ResponseToken is not null)
             {
                 return new LoginResponseDto
@@ -80,7 +84,7 @@ namespace Application.Services
         public async Task<Result<LoginResponseDto>> refresh(string userEmail, string RefreshToken, string source, CancellationToken cancellationToken)
         {
             Member user = await _userManager.FindByEmailAsync(userEmail);
-            if (user == null) return Errors.DoesntExist;
+            if (user == null) return Errors.DoesntExist(typeof(Member).Name);
             if (user.RefreshToken != RefreshToken || !tokenService.checkTokenValid(user.RefreshToken))
             {
                 return Errors.RefreshToken;
@@ -129,29 +133,32 @@ namespace Application.Services
                     .Subject("Email Confirmation")
                     .Body($"To Validate Email <a href=\"{link}\">click here</a>", isHtml: true)
                     .SendAsync();
+                await unitOfWork.SaveChangesAsync();
                 return member.ToMemberResponseDto();
             }
             else
             {
                 Console.WriteLine(result.Errors);
-                return Errors.PasswordNotSecure;
+                return new Error(result.Errors.First().Description);
             }
         }
         public async Task<Result> confirmEmail(string Email, string TokenId)
         {
             Member? user = await _userManager.FindByEmailAsync(Email);
-            if (user is null) return Errors.DoesntExist;
+            if (user is null) return Errors.DoesntExist(typeof(Member).Name);
             bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.EmailValidation.ToString(), Email);
             if (!validateToken) return Errors.InvalidToken;
             user.EmailConfirmed = true;
-            var editResult = await memberService.editMember(Email, user);
-            return  editResult.IsSuccess ? Result.success():Errors.DoesntExist;
+
+            var editResult = await memberRepository.editMemberAsync(Email, user);
+            await unitOfWork.SaveChangesAsync();
+            return  editResult ? Result.success():Errors.DoesntExist(typeof(Member).Name);
 
         }
         public async Task<Result> logOutAsync(string email, string source, CancellationToken cancellationToken)
         {
             Member user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return Errors.DoesntExist;
+            if (user == null) return Errors.DoesntExist(typeof(Member).Name);
             string key = $"{email}-{source}";
             await cache.RemoveAsync(key, cancellationToken);
             return Result.success();
@@ -160,7 +167,7 @@ namespace Application.Services
         public async Task<Result> resetPasswordInitializeAsync(string email)
         {
             Member user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return Errors.DoesntExist;
+            if (user == null) return Errors.DoesntExist(typeof(Member).Name);
             ConfirmationToken confirmationToken = await ConfirmationTokenService.generateTokenAsync(email, tokenModes.PasswordReset.ToString());
             string link = linkFactory.generateLink(tokenModes.PasswordReset.ToString(), email, confirmationToken.id.ToString());
             fluentEmail
@@ -168,6 +175,7 @@ namespace Application.Services
                 .Subject("Password Reset")
                 .Body($"To rest your password <a href=\"{link}\">click here</a>", isHtml: true)
                 .SendAsync();
+            await unitOfWork.SaveChangesAsync();
             return Result.success();
         }
 
@@ -175,7 +183,7 @@ namespace Application.Services
         public async Task<Result> resetPassword(ForgotPasswrodDTO forgotPasswrodDTO, string TokenId, string Email)
         {
             Member? user = await _userManager.FindByEmailAsync(Email);
-            if (user is null) return Errors.DoesntExist;
+            if (user is null) return Errors.DoesntExist(typeof(Member).Name);
             bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString(), Email);
             if (!validateToken) return Errors.InvalidToken;
             if (!forgotPasswrodDTO.NewPassword.Equals(forgotPasswrodDTO.ConfirmNewPassword)) return Errors.WrongPassword;
@@ -186,6 +194,7 @@ namespace Application.Services
                 Console.WriteLine(result.Errors.ToList());
                 return Errors.PasswordNotSecure;
             }
+            await unitOfWork.SaveChangesAsync();
             return Result.success();
         }
     }

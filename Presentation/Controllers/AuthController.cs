@@ -2,6 +2,7 @@
 using Application.IService;
 using Application.Mappers;
 using Application.Results;
+using Domain.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -31,7 +32,7 @@ namespace Presentation.Controllers
             var memberResponseResult = await authService.Login(loginMemberDto,source,cancellationToken);
             if (!memberResponseResult.IsSuccess)
             {
-                if (memberResponseResult.error == Errors.DoesntExist) return NotFound(memberResponseResult);
+                if (memberResponseResult.error == Errors.DoesntExist(typeof(Member).Name)) return NotFound(memberResponseResult);
                 else return BadRequest(memberResponseResult);
             }
                 return Ok(memberResponseResult);
