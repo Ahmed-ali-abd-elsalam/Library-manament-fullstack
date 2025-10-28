@@ -50,6 +50,17 @@ namespace Presentation.Controllers
         }
 
 
+            
+            add return date and borrow duration to database and borrow controller 
+            get self records        done
+            get all records for admin auth      done
+            get member records for admin auth       done
+            get single record       done
+            add remove dit single record        planned
+            and test them partially
+            
+        **/
+
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> myBorrowRecord(int offset = 0, int pagesize = 10)
@@ -86,17 +97,6 @@ namespace Presentation.Controllers
         [Authorize]
         public async Task<IActionResult> singleBorrowRecord(int id)
         {
-            //check if current user has admin role he can check any records else check if the record is owned by the logged in user
-            var borrowRecordResult = await borrowRecordService.GetBorrowRecord(id, User);
-            if (!borrowRecordResult.IsSuccess)
-            {
-                if (borrowRecordResult.error == Errors.DoesntBelong) return Unauthorized(borrowRecordResult);
-                return NotFound(borrowRecordResult);
-            }
-            return Ok(borrowRecordResult);
-        }
-
-
         [HttpPatch("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> editBorrowRecord(int id, string status)
@@ -110,6 +110,17 @@ namespace Presentation.Controllers
             }
             return Ok(borrowRecordResult);
         }
+
+            //check if current user has admin role he can check any records else check if the record is owned by the logged in user
+            var borrowRecordResult = await borrowRecordService.GetBorrowRecord(id, User);
+            if (!borrowRecordResult.IsSuccess)
+            {
+                if (borrowRecordResult.error == Errors.DoesntBelong) return Unauthorized(borrowRecordResult);
+                return NotFound(borrowRecordResult);
+            }
+            return Ok(borrowRecordResult);
+        }
+
 
 
     }
