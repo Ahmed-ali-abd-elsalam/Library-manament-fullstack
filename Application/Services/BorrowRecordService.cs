@@ -4,6 +4,7 @@ using Application.IService;
 using Application.Mappers;
 using Application.Results;
 using Domain.Entities;
+using System.Reflection.Emit;
 using System.Security.Claims;
 
 namespace Application.Services
@@ -23,7 +24,7 @@ namespace Application.Services
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, string userEmail)
+        public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, string userEmail, int borrowDuration)
         {
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);
             if (!bookExists) return Errors.DoesntExist(typeof(Book).Name);
@@ -40,9 +41,10 @@ namespace Application.Services
                 Member = user,
                 Book = book,
                 Status = borrowStatus.Pending,
-                BorrowDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                borrowDuration = borrowDuration
             });
             await unitOfWork.SaveChangesAsync();
+            //TODO  Notify Admin
             return borrowRecord.BorrowRecordtoDto();
         }
         public async Task<Result<BorrowRecordResponseDto>> ReturnBook(int bookID, string userEmail)
@@ -55,7 +57,9 @@ namespace Application.Services
             Book book = await _bookrepository.GetBookAsync(bookID);
             book.IsAvailable = true;
             await _bookrepository.UpdateBookAsync(bookID, book);
-            borrowRecord = await _repository.ReturnBookAsync(borrowRecord.Id, DateOnly.FromDateTime(DateTime.UtcNow));
+            borrowRecord.ReturnDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            borrowRecord.Status = borrowStatus.Returned;
+            borrowRecord = await _repository.editBorrowRecord(borrowRecord.Id, borrowRecord);
             await unitOfWork.SaveChangesAsync();
             return borrowRecord.BorrowRecordtoDto();
         }
@@ -118,6 +122,37 @@ namespace Application.Services
             var borrowRecord = await _repository.GetBorrowRecordAsync(id);
             if (borrowRecord.MemberId != member.Id & !isAdmin) return Errors.DoesntBelong;
             return borrowRecord.BorrowRecordtoDto();
+        }
+
+        public async Task<Result<BorrowRecordResponseDto>> editBorrowRecord(int id, string status,ClaimsPrincipal User)
+        {
+            string[] userStatuses = ["Borrowed", "Returned"];
+            string[] adminStatuses = ["Approved", "Denied"];
+            var Id = User.FindFirstValue("Id");
+            if (Id == null) return Errors.InvalidToken;
+            if (!await _repository.CheckExistsAsync(id)) return Errors.DoesntExist(typeof(BorrowRecord).Name);
+            var borrowRecord = await _repository.GetBorrowRecordAsync(id);
+            if (User.IsInRole("Admin"))
+            {
+                if (!adminStatuses.Contains(status)) return Errors.UnAuthorizedOperation;
+                //Todo notify user
+            }
+            else
+            {
+                if (borrowRecord.MemberId != Id) return Errors.DoesntBelong;
+                if (!userStatuses.Contains(status)) return Errors.UnAuthorizedOperation;
+                if(status == "Borrowed")
+                {
+                    borrowRecord.BorrowDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                    borrowRecord.ReturnDate = DateOnly.FromDateTime(
+                        DateTime.UtcNow.AddDays(borrowRecord.borrowDuration));
+                }
+            }
+            if (!Enum.TryParse<borrowStatus>(status, true, out var newStatus)) return Errors.invalidInput; 
+            borrowRecord.Status = newStatus ;
+            await _repository.editBorrowRecord(id,borrowRecord);
+            await unitOfWork.SaveChangesAsync();
+            return borrowRecord.BorrowRecordtoDto() ;
         }
     }
 }

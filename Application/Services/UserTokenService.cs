@@ -60,6 +60,7 @@ namespace Application.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email , member.Email),
+                new Claim("Id" , member.Id)
             };
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration["tokensecret"]));

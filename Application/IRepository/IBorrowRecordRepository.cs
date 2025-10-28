@@ -13,6 +13,6 @@ namespace Application.IRepository
         public Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync(string userId, int offset = 0, int pagesize = 10);
         Task<BorrowRecord> BorrowBookAsync(BorrowRecord borrowRecord);
         Task<BorrowRecord> ReturnBookAsync(int borrowRecordId, DateOnly returnDate);
-
+        Task<BorrowRecord> editBorrowRecord(int id,BorrowRecord newBorrowRecord);
     }
 }

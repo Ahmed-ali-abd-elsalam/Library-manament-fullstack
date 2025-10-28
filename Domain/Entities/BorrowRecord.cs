@@ -5,16 +5,16 @@
         Pending,
         Approved,
         Denied,
-        Removed,
         Returned,
-        Borrowed
-
+        Borrowed,
+        Late
     }
     public class BorrowRecord
     {
         public int Id { get; set; }
-        public DateOnly BorrowDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public DateOnly BorrowDate { get; set; }
         public DateOnly? ReturnDate { get; set; }
+        public int borrowDuration { get; set; }
         public Book Book { get; set; }
         public int BookId { get; set; }
         public borrowStatus Status { get; set; }

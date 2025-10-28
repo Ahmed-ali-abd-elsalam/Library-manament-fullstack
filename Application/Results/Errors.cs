@@ -13,7 +13,10 @@
         public static readonly Error DeletionFailed = new Error("failed To Delete this entity");
         public static readonly Error duplicateEntry = new Error("an entity already exists with this values");
         public static readonly Error repeatedOperation = new Error("that operation is already completed");
-        public static readonly Error DoesntBelong = new Error("tha enity doesn't belong to the logged in user");
-        
+        public static readonly Error DoesntBelong = new Error("that enity doesn't belong to the logged in user");
+        public static readonly Error invalidInput = new Error("invalid input this input is not accepted");
+        public static readonly Error UnAuthorizedOperation = new Error("Current User cant do this operation");
+
+
     }
 }

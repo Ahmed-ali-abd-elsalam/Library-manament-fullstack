@@ -46,7 +46,7 @@ namespace Infrastructure.Repositories
             return borrowRecord;
         }
 
-
+        //Refactor
         public async Task<BorrowRecord> ReturnBookAsync(int borrowRecordId, DateOnly returnDate)
         {
             BorrowRecord borrowRecord = await _context.BorrowRecords.FirstOrDefaultAsync(BR => BR.Id == borrowRecordId);
@@ -61,5 +61,13 @@ namespace Infrastructure.Repositories
             return _context.BorrowRecords.Where(Br => Br.MemberId == MemberId).CountAsync();
         }
 
+        public async Task<BorrowRecord> editBorrowRecord(int id, BorrowRecord newBorrowRecord)
+        {
+            BorrowRecord borrowRecord = await _context.BorrowRecords.FirstOrDefaultAsync(BR => BR.Id == id);
+            borrowRecord = newBorrowRecord;
+            _context.BorrowRecords.Update(borrowRecord);
+            return borrowRecord;
+
+        }
     }
 }
