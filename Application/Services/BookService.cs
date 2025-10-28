@@ -41,13 +41,13 @@ namespace Application.Services
         public async Task<Result<BookResponseDto>> AddNewBook(BookDto bookDto)
         {
             if (await _repository.CheckExistsAsync(bookDto.Title))
-                return Errors.duplicateEntry;
+                return Errors.DuplicateEntry;
             Book book = new Book
             {
                 Author = bookDto.Author,
                 Title = bookDto.Title,
                 PublishedYear = bookDto.PublishedYear,
-                IsAvailable = true
+                Copies = bookDto.Copies
             };
             book = await _repository.AddBookAsync(book);
             await unitOfWork.SaveChangesAsync();
@@ -62,7 +62,7 @@ namespace Application.Services
                 Author = bookDto.Author,
                 Title = bookDto.Title,
                 PublishedYear = bookDto.PublishedYear,
-                IsAvailable = true
+                Copies = bookDto.Copies
             };
             book = await _repository.UpdateBookAsync(bookId, book);
             await unitOfWork.SaveChangesAsync();

@@ -22,7 +22,7 @@ namespace Infrastructure.Repositories
         public async Task<bool> CheckAvailableAsync(int Id)
         {
             Book book = await _context.Books.FirstOrDefaultAsync(b => b.Id == Id);
-            return book.IsAvailable;
+            return book.Copies > 0;
         }
 
         public async Task<bool> CheckExistsAsync(int Id)
@@ -48,7 +48,7 @@ namespace Infrastructure.Repositories
         public async Task<ICollection<Book>> GetBooksAsync(int offset, int pagesize, BooksFilter booksFilter)
         {
             var query = _context.Books.AsQueryable();
-            query = query.Where(book => book.IsAvailable == booksFilter.IsAvailable);
+            query = query.Where(book => booksFilter.IsAvailable ? book.Copies > 0 : book.Copies <= 0);
             if (booksFilter.Title != string.Empty)
                 query = query.Where(book => book.Title == booksFilter.Title);
             if (booksFilter.Author != string.Empty)
@@ -61,7 +61,7 @@ namespace Infrastructure.Repositories
         public async Task<int> GetTotalCountAsync(BooksFilter booksFilter)
         {
             var query = _context.Books.AsQueryable();
-            query = query.Where(book => book.IsAvailable == booksFilter.IsAvailable);
+            query = query.Where(book => booksFilter.IsAvailable ? book.Copies > 0 : book.Copies <= 0);
             if (booksFilter.Title != string.Empty)
                 query = query.Where(book => book.Title == booksFilter.Title);
             if (booksFilter.Author != string.Empty)

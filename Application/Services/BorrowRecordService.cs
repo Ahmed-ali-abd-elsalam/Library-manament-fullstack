@@ -23,15 +23,13 @@ namespace Application.Services
             this.unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, string userEmail)
+        public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, string userEmail, int borrowDuration)
         {
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);
             if (!bookExists) return Errors.DoesntExist(typeof(Book).Name);
             bool bookAvailable = await _bookrepository.CheckAvailableAsync(bookID);
-            if (!bookAvailable) return Errors.notAvailable;
+            if (!bookAvailable) return Errors.NotAvailable;
             Book book = await _bookrepository.GetBookAsync(bookID);
-            book.IsAvailable = false;
-            await _bookrepository.UpdateBookAsync(bookID, book);
             Member user = await _memberrepository.GetMemberAsyncByEmail(userEmail);
             BorrowRecord borrowRecord = await _repository.BorrowBookAsync(new BorrowRecord
             {
@@ -40,9 +38,10 @@ namespace Application.Services
                 Member = user,
                 Book = book,
                 Status = borrowStatus.Pending,
-                BorrowDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                borrowDuration = borrowDuration
             });
             await unitOfWork.SaveChangesAsync();
+            //TODO  Notify Admin
             return borrowRecord.BorrowRecordtoDto();
         }
         public async Task<Result<BorrowRecordResponseDto>> ReturnBook(int bookID, string userEmail)
@@ -51,11 +50,13 @@ namespace Application.Services
             if (!await _repository.CheckExistsAsync(bookID, user.Id))
                 return Errors.DoesntExist(typeof(Member).Name);
             BorrowRecord borrowRecord = await _repository.GetBorrowRecordAsync(bookID, user.Id);
-            if (borrowRecord.ReturnDate != null) return Errors.repeatedOperation;
+            if (borrowRecord.ReturnDate != null) return Errors.RepeatedOperation;
             Book book = await _bookrepository.GetBookAsync(bookID);
-            book.IsAvailable = true;
+            book.Copies += 1;
             await _bookrepository.UpdateBookAsync(bookID, book);
-            borrowRecord = await _repository.ReturnBookAsync(borrowRecord.Id, DateOnly.FromDateTime(DateTime.UtcNow));
+            borrowRecord.ReturnDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            borrowRecord.Status = borrowStatus.Returned;
+            borrowRecord = await _repository.editBorrowRecord(borrowRecord.Id, borrowRecord);
             await unitOfWork.SaveChangesAsync();
             return borrowRecord.BorrowRecordtoDto();
         }
@@ -110,13 +111,36 @@ namespace Application.Services
         {
             // if admin return BR // if owner return BR // if not owner return not owned // if BR doesnt exist
             var email = User.FindFirst(ClaimTypes.Email);
-            if (email == null)  return Errors.InvalidToken;
+            if (email == null) return Errors.InvalidToken;
             Member member = await _memberrepository.GetMemberAsyncByEmail(email.Value);
             if (member == null) return Errors.DoesntExist(typeof(Member).Name);
             bool isAdmin = User.IsInRole("Admin");
             if (!await _repository.CheckExistsAsync(id)) return Errors.DoesntExist(typeof(BorrowRecord).Name);
             var borrowRecord = await _repository.GetBorrowRecordAsync(id);
             if (borrowRecord.MemberId != member.Id & !isAdmin) return Errors.DoesntBelong;
+            return borrowRecord.BorrowRecordtoDto();
+        }
+
+        public async Task<Result<BorrowRecordResponseDto>> HandleBorrowRequests(int id, string status)
+        {
+            string[] adminStatuses = ["Approved", "Denied"];
+            if (!await _repository.CheckExistsAsync(id)) return Errors.DoesntExist(typeof(BorrowRecord).Name);
+            var borrowRecord = await _repository.GetBorrowRecordAsync(id);
+            if (!Enum.TryParse<borrowStatus>(status, true, out var newStatus)) return Errors.InvalidInputs;
+            if (newStatus == borrowStatus.Approved)
+            {
+                Book book = await _bookrepository.GetBookAsync(borrowRecord.BookId);
+                if (book == null) return Errors.DoesntExist(typeof(Book).Name);
+                book.Copies -= 1;
+                if (book.Copies <= 0) return Errors.CantApprove;
+                borrowRecord.BorrowDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                borrowRecord.ReturnDate = DateOnly.FromDateTime(
+                    DateTime.UtcNow.AddDays(borrowRecord.borrowDuration));
+                await _bookrepository.UpdateBookAsync(borrowRecord.BookId, book);
+            }
+            borrowRecord.Status = newStatus;
+            await _repository.editBorrowRecord(id, borrowRecord);
+            await unitOfWork.SaveChangesAsync();
             return borrowRecord.BorrowRecordtoDto();
         }
     }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTOs
 {
@@ -13,8 +8,14 @@ namespace Application.DTOs
         public required string Author { get; set; }
         [Required]
         public required string Title { get; set; }
-        [Required]        
+        [Required]
+        [DataType(DataType.Date)]
+        [NotInFuture]
         public DateOnly PublishedYear { get; set; }
+        [Required]
+        [GreaterThan(0)]
+        public int Copies { get; set; }
+
 
     }
 }

@@ -15,6 +15,10 @@ namespace Application.Mappers
                 status = borrowRecord.Status.ToString(),
                 MemberId = borrowRecord.MemberId,
                 ReturnDate = borrowRecord.ReturnDate,
+                LateReturns = borrowRecord.Member.LateReturns,
+                Email = borrowRecord.Member.Email,
+                StockCopies = borrowRecord.Book.Copies,
+                BookTitle = borrowRecord.Book.Title,
 
             };
         }

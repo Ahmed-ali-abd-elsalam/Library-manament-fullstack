@@ -15,10 +15,9 @@ namespace Application.Results
             error = message;
         }
         public static implicit operator Error(string message) => new Error(message);
-        public override bool Equals(object? obj)
+        public bool equals(Error? obj)
         {
-            if (obj is not Error other) return false;
-            return error.Equals(other.error);
+            return error.Equals(obj.error);
         }
     }
 

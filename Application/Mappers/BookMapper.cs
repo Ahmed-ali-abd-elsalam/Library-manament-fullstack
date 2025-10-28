@@ -1,10 +1,5 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Mappers
 {
@@ -17,7 +12,7 @@ namespace Application.Mappers
                 Author = dto.Author,
                 Title = dto.Title,
                 PublishedYear = dto.PublishedYear,
-                IsAvailable = true
+                Copies = dto.Copies
             };
         }
         public static BookResponseDto BookToDtoMapper(this Book book)
@@ -28,7 +23,7 @@ namespace Application.Mappers
                 Author = book.Author,
                 Title = book.Title,
                 PublishedYear = book.PublishedYear,
-                IsAvailable = book.IsAvailable
+                Copies = book.Copies
             };
         }
     }

@@ -2,7 +2,6 @@
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Infrastructure.Repositories
 {
@@ -25,18 +24,18 @@ namespace Infrastructure.Repositories
 
         public async Task<BorrowRecord?> GetBorrowRecordAsync(int bookId, string MemberId)
         {
-            return await _context.BorrowRecords.AsNoTracking().OrderByDescending(Br => Br.ReturnDate).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
+            return await _context.BorrowRecords.Include(Br => Br.Member).Include(Br => Br.Book).AsNoTracking().OrderBy(BR => BR.BookId).OrderBy(Br => Br.Id).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
         }
         public async Task<BorrowRecord?> GetBorrowRecordAsync(int BorrowRecordId)
         {
-            return await _context.BorrowRecords.AsNoTracking().FirstOrDefaultAsync(BR => BR.Id == BorrowRecordId);
+            return await _context.BorrowRecords.Include(Br => Br.Member).Include(Br => Br.Book).AsNoTracking().FirstOrDefaultAsync(BR => BR.Id == BorrowRecordId);
         }
 
         public async Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync(int offset, int pagesize)
         {
-            return await _context.BorrowRecords.Skip(offset * pagesize).Take(pagesize).ToListAsync();
+            return await _context.BorrowRecords.OrderBy(BR => BR.BookId).OrderBy(Br => Br.Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
         }
-        public async Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync(string Id, int offset, int pagesize )
+        public async Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync(string Id, int offset, int pagesize)
         {
             return await _context.BorrowRecords.Where(br => br.MemberId == Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
         }
@@ -45,14 +44,13 @@ namespace Infrastructure.Repositories
             await _context.BorrowRecords.AddAsync(borrowRecord);
             return borrowRecord;
         }
-
-
-        public async Task<BorrowRecord> ReturnBookAsync(int borrowRecordId, DateOnly returnDate)
-        {
-            BorrowRecord borrowRecord = await _context.BorrowRecords.FirstOrDefaultAsync(BR => BR.Id == borrowRecordId);
-            borrowRecord.ReturnDate = returnDate;
-            return borrowRecord;
-        }
+        //Refactor
+        //public async Task<BorrowRecord> ReturnBookAsync(int borrowRecordId, DateOnly returnDate)
+        //{
+        //    BorrowRecord borrowRecord = await _context.BorrowRecords.FirstOrDefaultAsync(BR => BR.Id == borrowRecordId);
+        //    borrowRecord.ReturnDate = returnDate;
+        //    return borrowRecord;
+        //}
 
         public Task<int> getTotalCountAsync(string MemberId = "")
         {
@@ -61,5 +59,13 @@ namespace Infrastructure.Repositories
             return _context.BorrowRecords.Where(Br => Br.MemberId == MemberId).CountAsync();
         }
 
+        public async Task<BorrowRecord> editBorrowRecord(int id, BorrowRecord newBorrowRecord)
+        {
+            BorrowRecord borrowRecord = await _context.BorrowRecords.FirstOrDefaultAsync(BR => BR.Id == id);
+            borrowRecord = newBorrowRecord;
+            _context.BorrowRecords.Update(borrowRecord);
+            return borrowRecord;
+
+        }
     }
 }
