@@ -77,6 +77,7 @@ namespace Infrastructure.Repositories
             book.Title = update.Title;
             book.Author = update.Author;
             book.PublishedYear = update.PublishedYear;
+            _context.Books.Update(book);
             return book;
         }
     }

@@ -39,7 +39,7 @@ namespace Presentation.Controllers
             return memberResult.IsSuccess ? Ok(memberResult) : NotFound(memberResult);
         }
 
-        [HttpGet("member")]
+        [HttpGet("{Email}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> getMember(string Email)
         {

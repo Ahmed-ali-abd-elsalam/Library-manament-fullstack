@@ -8,7 +8,7 @@ public class NotInFutureAttribute : ValidationAttribute
 
         if (value is DateOnly dateValue)
         {
-            return dateValue <= DateOnly.FromDateTime(DateTime.Now);
+            return dateValue < DateOnly.FromDateTime(DateTime.Now);
         }
 
         return false;

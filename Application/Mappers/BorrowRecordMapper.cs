@@ -19,7 +19,6 @@ namespace Application.Mappers
                 Email = borrowRecord.Member.Email,
                 StockCopies = borrowRecord.Book.Copies,
                 BookTitle = borrowRecord.Book.Title,
-
             };
         }
     }
