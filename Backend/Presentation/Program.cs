@@ -100,6 +100,17 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<LinkFactory>();
 builder.Host.UseSerilog();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200") // your Angular dev server
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // if using cookies or Authorization header
+    });
+});
 
 //builder.Services.AddScoped<TokenMiddleware>();
 
@@ -163,6 +174,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowFrontend");
 app.UseRequestTimeouts();
 
 app.UseHttpsRedirection();

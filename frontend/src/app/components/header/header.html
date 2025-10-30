@@ -1,0 +1,21 @@
+<header>
+    <nav>
+        <div>
+            <!-- <img src="library-book-reading-abstract-icon-or-emblem-vector.jpg"> -->
+            <span routerLink="/">{{title()}}</span>
+        </div>
+        <ul>
+            <li routerLink="/login">
+                login
+            </li>
+
+            <li routerLink="/signup">
+                register
+            </li>
+            <li (mouseup)="logOut">
+                LogOut
+            </li>
+
+        </ul>
+    </nav>
+</header>

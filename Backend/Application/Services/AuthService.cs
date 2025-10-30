@@ -54,29 +54,29 @@ namespace Application.Services
             if (!user.EmailConfirmed) return Errors.EmailNotConfirmed;
             var userRoles = await _userManager.GetRolesAsync(user);
             string key = $"{loginMemberDto.Email}-{source}";
-            string ResponseToken = await cache.GetStringAsync(key, cancellationToken);
+            string Access_Token = await cache.GetStringAsync(key, cancellationToken);
             string Refresh_token = await tokenService.createTokenAsync(user, userRoles, "Refresh Token", source);
             user.RefreshToken = Refresh_token;
             await memberRepository.editMemberAsync(loginMemberDto.Email, user);
-            if (ResponseToken is not null)
+            if (Access_Token is not null)
             {
                 return new LoginResponseDto
                 {
                     Email = loginMemberDto.Email,
-                    Response_Token = ResponseToken,
+                    Response_Token = Access_Token,
                     Refresh_token = Refresh_token
                 };
             }
-            ResponseToken = await tokenService.createTokenAsync(user, userRoles, "Response Token", source);
+            Access_Token = await tokenService.createTokenAsync(user, userRoles, "Response Token", source);
             await cache.SetStringAsync(
                 key,
-                ResponseToken,
+                Access_Token,
                 new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30)),
                 cancellationToken);
             return new LoginResponseDto
                 {
                     Email = loginMemberDto.Email,
-                    Response_Token = ResponseToken,
+                    Response_Token = Access_Token,
                     Refresh_token = Refresh_token
                 };
 
