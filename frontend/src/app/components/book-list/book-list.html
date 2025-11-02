@@ -1,29 +1,59 @@
-<div class="book-list-container">
-  <h1 class="page-title">Book Collection</h1>
-  <div class="book-grid">
-    @for (book of books(); track book.id) {
-    <div class="book-card">
-      <div class="book-cover-wrapper">
-        <!-- <img [src]="book.coverUrl" [alt]="book.title" class="book-cover"> -->
+<div class="book-list-wrapper">
+  <h1 class="books-title">Books</h1>
+
+  <div class="search-container">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search books..."
+      [(ngModel)]="searchQuery"
+      (input)="onSearch()"
+    />
+  </div>
+
+  <div class="book-table-container">
+    <div class="book-table-header" [class.has-action]="isLoggedIn()">
+      <div class="column-title">title</div>
+      <div class="column-author">author</div>
+      <div class="column-copies">Copies</div>
+      <div class="column-year">published year</div>
+      @if (isLoggedIn()) {
+      <div class="column-action"></div>
+      }
+    </div>
+
+    @for (book of filteredBooks(); track book.id) {
+    <div class="book-row" [class.has-action]="isLoggedIn()">
+      <div class="column-title">{{ book.title }}</div>
+      <div class="column-author">{{ book.author }}</div>
+      <div class="column-copies">{{ book.copiesAvailable || book.copies || 0 }}</div>
+      <div class="column-year">{{ book.publishedYear }}</div>
+      @if (isLoggedIn()) {
+      <div class="column-action">
+        <button class="borrow-btn" (click)="borrowBook(book.id)">Borrow</button>
       </div>
-      <div class="book-info">
-        <h3 class="book-title">{{ book.title }}</h3>
-        <p class="book-author">{{ book.author }}</p>
-        <div class="book-meta">
-          <span class="book-year">{{ book.published_year }}</span>
-          @if (book.rating) {
-          <span class="book-rating">★ {{ book.rating }}</span>
-          }
-        </div>
-      </div>
+      }
     </div>
     }
   </div>
-</div>
-<div class="Pagination">
-  <div class="pages">
-    @for(number of pagination().pages; track number){
-    <span class="page-Numbers">{{ number }}</span>
-    }
+
+  <div class="pagination-container">
+    <div class="page-numbers">
+      @for (page of visiblePages(); track page) {
+      <span class="page-number" [class.active]="page === currentPage()" (click)="goToPage(page)">
+        {{ page }}
+      </span>
+      }
+    </div>
+
+    <div class="page-size-control">
+      <span class="page-size-label">size</span>
+      <select class="page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+        <option [value]="5">5</option>
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+      </select>
+    </div>
   </div>
 </div>

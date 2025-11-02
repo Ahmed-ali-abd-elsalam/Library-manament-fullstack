@@ -1,4 +1,10 @@
-import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandlerFn,
+  HttpInterceptorFn,
+  HttpRequest,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, tap, throwError } from 'rxjs';
@@ -18,7 +24,10 @@ function shouldSkipAuth(req: HttpRequest<unknown>): boolean {
   return false;
 }
 
-export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
+export const authInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn
+): Observable<HttpEvent<unknown>> => {
   const router = inject(Router);
 
   const token = getAccessToken();
@@ -27,13 +36,13 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   if (token && !shouldSkipAuth(req)) {
     authReq = req.clone({
       setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   return next(authReq).pipe(
-    tap(() => {
+    tap((res) => {
       // Successful responses can be observed here if needed
     }),
     catchError((error: unknown) => {

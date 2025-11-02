@@ -2,7 +2,8 @@ export interface Book {
   id: number;
   title: string;
   author: string;
-  published_year: number;
-  copies:number;
+  publishedYear: number;
+  copies: number;
+  copiesAvailable?: number;
   rating?: number;
 }

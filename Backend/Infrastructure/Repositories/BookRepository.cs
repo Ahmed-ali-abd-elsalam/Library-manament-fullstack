@@ -55,7 +55,7 @@ namespace Infrastructure.Repositories
                 query = query.Where(book => book.Author == booksFilter.Author);
             if (booksFilter.PublishedYear != DateOnly.MinValue)
                 query = query.Where(book => book.PublishedYear == booksFilter.PublishedYear);
-            return await query.OrderBy(b => b.Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
+            return await query.OrderBy(b => b.Id).Skip(offset).Take(pagesize).ToListAsync();
         }
 
         public async Task<int> GetTotalCountAsync(BooksFilter booksFilter)

@@ -1,4 +1,4 @@
-:root{
+:root {
   --primary: #993955;
   --accent: #ae76a6;
   --muted: #a3c3d9;
@@ -10,11 +10,11 @@
 
 /* You can add global styles to this file, and also import other style files */
 body {
-    padding: 0;
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
+  padding: 0;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  // background-color: var(--bg);
+  color: var(--text);
 }
 
 a {
@@ -22,7 +22,9 @@ a {
   text-decoration: none;
 }
 
-a:hover { color: var(--accent); }
+a:hover {
+  color: var(--accent);
+}
 
 /* Buttons */
 .btn {
@@ -58,7 +60,7 @@ a:hover { color: var(--accent); }
 .input {
   padding: 10px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   background: white;
 }
 

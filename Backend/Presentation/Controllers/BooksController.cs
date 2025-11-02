@@ -2,6 +2,7 @@
 using Application.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace Presentation.Controllers
 {
@@ -18,10 +19,11 @@ namespace Presentation.Controllers
 
         [HttpGet]
         [ProducesResponseType(statusCode: 200, type: typeof(BooksPaginatedDto))]
-        public async Task<IActionResult> getBooks([FromQuery] BooksFilter booksFilter, int offest = 0, int count = 10)
+        public async Task<IActionResult> getBooks([FromQuery] BooksFilter booksFilter, int offset = 0, int count = 10)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var booksResult = await _bookService.GetAllBooks(offest, count, booksFilter);
+            var booksResult = await _bookService.GetAllBooks(offset, count, booksFilter);
+            Log.Information("Book data: {@BookData}", booksResult.Data);
             return booksResult.IsSuccess ? Ok(booksResult) : NotFound(booksResult);
         }
         [HttpGet("{BookId}")]

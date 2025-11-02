@@ -1,21 +1,21 @@
-<header>
-    <nav>
-        <div>
-            <!-- <img src="library-book-reading-abstract-icon-or-emblem-vector.jpg"> -->
-            <span routerLink="/">{{title()}}</span>
-        </div>
-        <ul>
-            <li routerLink="/login">
-                login
-            </li>
+<header class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <img src="/books-stack-of-three-svgrepo-com.svg" alt="Library Logo" class="navbar-logo" />
+      <span class="navbar-title">Library Management System</span>
+    </div>
 
-            <li routerLink="/signup">
-                register
-            </li>
-            <li (mouseup)="logOut()">
-                LogOut
-            </li>
-
-        </ul>
+    @if (isLoggedIn()) {
+    <nav class="navbar-menu logged-in">
+      <a routerLink="/borrowed-books" class="nav-link">Borrowed Books</a>
+      <span class="nav-link username">{{ userName() }}</span>
+      <button (click)="logOut()" class="nav-link logout-btn">Logout</button>
     </nav>
+    } @else {
+    <nav class="navbar-menu">
+      <a routerLink="/login" class="nav-link">login</a>
+      <a routerLink="/signup" class="nav-link">Register</a>
+    </nav>
+    }
+  </div>
 </header>
