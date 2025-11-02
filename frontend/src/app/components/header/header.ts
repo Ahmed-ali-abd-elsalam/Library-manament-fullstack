@@ -6,24 +6,26 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-header',
   imports: [RouterLink],
   templateUrl: './header.html',
-  styleUrl: './header.scss'
+  styleUrl: './header.scss',
 })
 export class Header implements OnInit {
   authservice = inject(AuthService);
   router = inject(Router);
-  
-  userName = signal('userName');
+
+  userName = signal('xxx');
   isLoggedIn = computed(() => !!this.authservice.getToken());
-  
+
   ngOnInit() {
     const userInfo = this.authservice.getUserInfo();
-    if (userInfo?.name) {
-      this.userName.set(userInfo.name);
+    // transfer userInfo json to object
+    if (userInfo?.UserName) {
+      this.userName.set(userInfo.UserName);
     }
   }
-  
+
   logOut() {
     this.authservice.clearToken();
-    this.router.navigateByUrl("/");
+    this.router.navigateByUrl('/');
+    this.isLoggedIn();
   }
 }

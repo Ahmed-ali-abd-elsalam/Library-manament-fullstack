@@ -76,6 +76,7 @@ namespace Application.Services
             return new LoginResponseDto
             {
                 Email = loginMemberDto.Email,
+                UserName = user.UserName,
                 Access_Token = Access_Token,
                 Refresh_token = Refresh_token
             };
@@ -96,6 +97,7 @@ namespace Application.Services
             {
                 return new LoginResponseDto
                 {
+                    UserName = user.UserName,
                     Email = userEmail,
                     Access_Token = ResponseToken,
                     Refresh_token = RefreshToken
