@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -11,7 +11,10 @@ import { AuthService } from '../../services/auth.service';
 export class Header {
   title = signal('Library management system')
   authservice = inject(AuthService);
+  router = inject(Router);
   logOut(){
     this.authservice.clearToken();
+    this.router.navigateByUrl("/");
   }
+  
 }

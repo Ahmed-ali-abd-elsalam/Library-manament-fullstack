@@ -30,10 +30,7 @@ export class LoginComponent {
       },
       error: (err) => {
         console.log(err);
-        const message = err?.error.error||"login failed";
-        // const message = err?.error?.message || err?.message || err?.error || 'Login failed';
-        console.log(message);
-
+        const message :string = err?.error.error.error||"login failed";
         this.error = message;
         this.loading = false;
       }

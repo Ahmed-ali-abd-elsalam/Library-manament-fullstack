@@ -1,10 +1,13 @@
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BookService {
-  private readonly loginUrl = 'https://localhost:7205/api/Auth/login';
-  private readonly registerUrl = 'https://localhost:7205/api/Auth/register';
-
+  private readonly baseUrl = 'https://localhost:7205/api/books';
+  http = inject(HttpClient);
+  getBooks() {
+    return this.http.get<any>(this.baseUrl);
+  }
 }

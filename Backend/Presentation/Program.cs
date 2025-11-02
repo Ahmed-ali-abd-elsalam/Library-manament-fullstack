@@ -26,12 +26,12 @@ Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configurat
     .CreateLogger();
 //.Enrich.WithClientIp().Enrich.WithMachineName().Enrich.WithEnvironmentName()
 builder.Services.AddControllers();
-builder.Services.AddScoped<GlobalTokenValidationFilter>();
+//builder.Services.AddScoped<GlobalTokenValidationFilter>();
 
-builder.Services.AddControllers(options =>
-{
-    options.Filters.AddService<GlobalTokenValidationFilter>();
-});
+//builder.Services.AddControllers(options =>
+//{
+//    options.Filters.AddService<GlobalTokenValidationFilter>();
+//});
 
 builder.Services.AddLogging();
 builder.Services.AddRequestTimeouts(options =>

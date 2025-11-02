@@ -18,7 +18,7 @@ namespace Presentation.Controllers
 
         [HttpGet]
         [ProducesResponseType(statusCode: 200, type: typeof(BooksPaginatedDto))]
-        public async Task<IActionResult> getBooks([FromQuery] BooksFilter booksFilter, int offest = 0, int count = 100)
+        public async Task<IActionResult> getBooks([FromQuery] BooksFilter booksFilter, int offest = 0, int count = 10)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var booksResult = await _bookService.GetAllBooks(offest, count, booksFilter);

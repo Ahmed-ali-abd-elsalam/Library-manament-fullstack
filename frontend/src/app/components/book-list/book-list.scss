@@ -28,7 +28,7 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 100%;
   max-width: 300px;
-  
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
@@ -92,16 +92,16 @@
   .book-list-container {
     padding: 24px 16px;
   }
-  
+
   .page-title {
     font-size: 24px;
     margin-bottom: 24px;
   }
-  
+
   .book-grid {
     gap: 24px;
   }
-  
+
   .book-cover-wrapper {
     height: 320px;
   }
@@ -111,8 +111,31 @@
   .book-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .book-card {
     max-width: 100%;
   }
+}
+
+.Pagination {
+  // position: fixed; /* Keeps it always visible at the bottom */
+  left: 0;
+  width: 100%;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center; /* Centers the inner .pages horizontally */
+  align-items: center;
+  // z-index: 1000; /* Ensures it stays above other elements */
+}
+
+.pages {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.page-Numbers {
+  margin: 0 12px;
+  cursor: pointer;
+  font-size: 16px;
 }
