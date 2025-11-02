@@ -44,8 +44,8 @@ export class AuthService {
   login(payload: LoginPayload): Observable<void> {
     return this.http.post<any>(this.loginUrl, payload).pipe(
       tap((res) => {
-        
-        const token = this.extractToken(res);
+
+        const token = this.extractToken(res.data);
         if (token) {
           this.setToken(token);
         }
@@ -62,7 +62,7 @@ export class AuthService {
     console.log(res);
     if (!res || typeof res !== 'object') return null;
     return (
-      res.accessToken ||
+      res.access_Token ||
       res.token ||
       res.jwt ||
       res.id_token ||

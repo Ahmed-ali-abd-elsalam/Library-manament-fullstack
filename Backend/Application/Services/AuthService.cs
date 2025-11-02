@@ -63,7 +63,7 @@ namespace Application.Services
                 return new LoginResponseDto
                 {
                     Email = loginMemberDto.Email,
-                    Response_Token = Access_Token,
+                    Access_Token = Access_Token,
                     Refresh_token = Refresh_token
                 };
             }
@@ -74,11 +74,11 @@ namespace Application.Services
                 new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30)),
                 cancellationToken);
             return new LoginResponseDto
-                {
-                    Email = loginMemberDto.Email,
-                    Response_Token = Access_Token,
-                    Refresh_token = Refresh_token
-                };
+            {
+                Email = loginMemberDto.Email,
+                Access_Token = Access_Token,
+                Refresh_token = Refresh_token
+            };
 
         }
         public async Task<Result<LoginResponseDto>> refresh(string userEmail, string RefreshToken, string source, CancellationToken cancellationToken)
@@ -95,11 +95,11 @@ namespace Application.Services
             if (ResponseToken is not null)
             {
                 return new LoginResponseDto
-{
-    Email = userEmail,
-    Response_Token = ResponseToken,
-    Refresh_token = RefreshToken
-};
+                {
+                    Email = userEmail,
+                    Access_Token = ResponseToken,
+                    Refresh_token = RefreshToken
+                };
             }
             ResponseToken = await tokenService.createTokenAsync(user, userRoles, "Response Token", source);
             await cache.SetStringAsync(
@@ -107,11 +107,11 @@ namespace Application.Services
                 ResponseToken,
                 new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30)),
                 cancellationToken);
-                return new LoginResponseDto
+            return new LoginResponseDto
 
             {
                 Email = userEmail,
-                Response_Token = ResponseToken,
+                Access_Token = ResponseToken,
                 Refresh_token = RefreshToken
             };
         }
@@ -152,7 +152,7 @@ namespace Application.Services
 
             var editResult = await memberRepository.editMemberAsync(Email, user);
             await unitOfWork.SaveChangesAsync();
-            return  editResult ? Result.success():Errors.DoesntExist(typeof(Member).Name);
+            return editResult ? Result.success() : Errors.DoesntExist(typeof(Member).Name);
 
         }
         public async Task<Result> logOutAsync(string email, string source, CancellationToken cancellationToken)

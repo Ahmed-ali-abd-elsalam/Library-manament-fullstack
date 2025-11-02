@@ -29,7 +29,11 @@ export class LoginComponent {
         this.loading = false;
       },
       error: (err) => {
-        const message = err?.error?.message || err?.message || 'Login failed';
+        console.log(err);
+        const message = err?.error.error||"login failed";
+        // const message = err?.error?.message || err?.message || err?.error || 'Login failed';
+        console.log(message);
+
         this.error = message;
         this.loading = false;
       }

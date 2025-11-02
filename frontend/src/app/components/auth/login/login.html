@@ -22,7 +22,9 @@
         <a routerLink="/signup">Create an account</a>
       </div>
 
-      <p class="error" *ngIf="error">{{ error }}</p>
+      @if(error){
+        <p class="error" >{{error}}</p>
+      }
     </form>
   </div>
 </div>
