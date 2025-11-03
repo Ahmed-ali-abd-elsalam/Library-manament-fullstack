@@ -101,7 +101,7 @@ namespace Presentation.Controllers
         {
             var result = await authService.confirmEmail(Email, TokenId);
             if (!result.IsSuccess) return BadRequest(result);
-            return Accepted("Email Validated");
+            return Redirect("http://localhost:4200/login");
         }
 
         //[HttpGet]

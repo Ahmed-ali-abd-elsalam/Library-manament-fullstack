@@ -84,7 +84,7 @@ export class AuthService {
 
         if (res.data?.name || res.data?.email) {
           this.setUserInfo({
-            UserName: res.data.UserName || 'User',
+            UserName: res.data.userName || 'User',
             email: res.data.email || payload.email,
           });
         }
@@ -94,7 +94,7 @@ export class AuthService {
   }
 
   register(payload: SignupPayload): Observable<void> {
-    return this.http.post<any>(this.registerUrl, payload).pipe(map(() => void 0));
+    return this.http.post<any>(this.registerUrl, payload);
   }
 
   private extractToken(res: any): string | null {

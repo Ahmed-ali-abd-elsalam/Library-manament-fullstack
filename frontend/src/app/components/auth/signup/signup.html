@@ -1,3 +1,5 @@
+@if (!success()) {
+
 <div class="auth-page">
   <div class="auth-card">
     <h2 class="auth-title">Create your account</h2>
@@ -15,19 +17,35 @@
 
       <div class="form-field">
         <label for="password">Password</label>
-        <input id="password" name="password" class="input" type="password" [(ngModel)]="password" required />
+        <input
+          id="password"
+          name="password"
+          class="input"
+          type="password"
+          [(ngModel)]="password"
+          required
+        />
       </div>
 
       <div class="form-actions">
-        <button class="btn btn-primary" type="submit" [disabled]="loading">{{ loading ? 'Signing up...' : 'Sign up' }}</button>
+        <button class="btn btn-primary" type="submit" [disabled]="loading">
+          {{ loading ? 'Signing up...' : 'Sign up' }}
+        </button>
         <a class="btn btn-outline" routerLink="/">Home</a>
       </div>
 
       <div class="auth-links">
         <a routerLink="/login">Already have an account? Sign in</a>
       </div>
-
-      <p class="error" *ngIf="error">{{ error }}</p>
+      @if(error() !=''){
+      <p>{{ error() }}</p>
+      }
     </form>
   </div>
 </div>
+} @else {
+<div class="auth-page">
+  <h2 class="auth-title">wonderful</h2>
+  <p>now you need to check your mail to confirm your registration</p>
+</div>
+}

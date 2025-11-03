@@ -80,7 +80,6 @@ export class BookListComponent {
       )
       .subscribe((response) => {
         const data = response.data;
-        console.log(data.books);
 
         this.books.set(data?.books || []);
         const totalBooks = Number(data?.total ?? 0);

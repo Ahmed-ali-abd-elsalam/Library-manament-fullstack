@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -9,31 +9,35 @@ import { AuthService } from '../../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './signup.html',
-  styleUrls: ['./signup.scss']
+  styleUrls: ['./signup.scss'],
 })
 export class SignupComponent {
   name = '';
   email = '';
   password = '';
   loading = false;
-  error: string | null = null;
+  success = signal<boolean>(false);
+  error = signal<string>('');
 
   constructor(private router: Router, private auth: AuthService) {}
 
   onSubmit() {
     this.loading = true;
-    this.error = null;
     const body = { name: this.name, email: this.email, password: this.password };
     this.auth.register(body).subscribe({
       next: () => {
-        this.router.navigateByUrl('/login');
+        this.success.set(true);
         this.loading = false;
+        setTimeout(() => {
+          this.router.navigateByUrl('/login');
+        }, 5000);
       },
       error: (err) => {
-        const message = err?.error?.message || err?.message || 'Registration failed';
-        this.error = message;
+        console.log(err);
+        const message = err?.error.error.error || err.error?.Name[0] || 'Registration failed';
+        this.error.set(message);
         this.loading = false;
-      }
+      },
     });
   }
 }
