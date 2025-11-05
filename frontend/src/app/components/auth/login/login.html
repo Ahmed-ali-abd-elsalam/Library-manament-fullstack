@@ -10,20 +10,31 @@
 
       <div class="form-field">
         <label for="password">Password</label>
-        <input id="password" name="password" class="input" type="password" [(ngModel)]="password" required />
+        <input
+          id="password"
+          name="password"
+          class="input"
+          type="password"
+          [(ngModel)]="password"
+          required
+        />
       </div>
 
       <div class="form-actions">
-        <button class="btn btn-primary" type="submit" [disabled]="loading">{{ loading ? 'Signing in...' : 'Login' }}</button>
+        <button class="btn btn-primary" type="submit" [disabled]="loading">
+          {{ loading ? 'Signing in...' : 'Login' }}
+        </button>
         <a class="btn btn-outline" routerLink="/">Home</a>
       </div>
 
       <div class="auth-links">
         <a routerLink="/signup">Create an account</a>
+        <br />
+        <a routerLink="/forget-password-start">Forgot your password?</a>
       </div>
 
       @if(error){
-        <p class="error" >{{this.error}}</p>
+      <p class="error">{{ this.error }}</p>
       }
     </form>
   </div>

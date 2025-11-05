@@ -45,7 +45,13 @@
 </div>
 } @else {
 <div class="auth-page">
-  <h2 class="auth-title">wonderful</h2>
-  <p>now you need to check your mail to confirm your registration</p>
+  <div class="auth-card">
+    <h2 class="auth-title">Registration successful</h2>
+    <p class="info-text">Please check your email to confirm your registration.</p>
+    <div class="form-actions">
+      <a class="btn btn-primary" routerLink="/login">Go to login</a>
+      <a class="btn btn-outline" routerLink="/">Home</a>
+    </div>
+  </div>
 </div>
 }

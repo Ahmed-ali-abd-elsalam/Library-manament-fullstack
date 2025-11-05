@@ -13,11 +13,10 @@
         public static readonly Error DeletionFailed = new Error("failed To Delete this entity");
         public static readonly Error DuplicateEntry = new Error("an entity already exists with this values");
         public static readonly Error RepeatedOperation = new Error("that operation is already completed");
-        public static readonly Error DoesntBelong = new Error("that enity doesn't belong to the logged in user");
+        public static readonly Error DoesntBelong = new Error("that entity doesn't belong to the logged in user");
         public static readonly Error InvalidInputs = new Error("invalid input this input is not accepted");
         public static readonly Error UnAuthorizedOperation = new Error("Current User cant do this operation");
         public static readonly Error CantApprove = new Error("Cant Approve borrowing for this book no items in stock");
-
-
+        public static readonly Error InvalidOperation = new Error("something went wrong with this operation");
     }
 }

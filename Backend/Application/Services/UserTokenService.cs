@@ -77,7 +77,7 @@ namespace Application.Services
                    issuer: configuration.GetValue<string>("AppSettings:Issuer"),
                    audience: configuration.GetValue<string>("AppSettings:Audience"),
                    claims: claims,
-                   expires: DateTime.UtcNow.AddMinutes(30),
+                   expires: DateTime.UtcNow.AddMinutes(1),
                    signingCredentials: creds
                );
             }

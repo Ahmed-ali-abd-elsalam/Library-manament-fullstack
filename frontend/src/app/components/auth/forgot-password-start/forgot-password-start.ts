@@ -5,35 +5,37 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
-  selector: 'app-signup',
+  selector: 'app-forgot-password-start',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './signup.html',
-  styleUrls: ['./signup.scss'],
+  templateUrl: './forgot-password-start.html',
+  styleUrls: ['./forgot-password-start.scss'],
 })
-export class SignupComponent {
-  name = '';
+export class ForgotPasswordStartComponent {
   email = '';
-  password = '';
   loading = false;
-  success = signal<boolean>(false);
   error = signal<string>('');
 
-  constructor(private router: Router, private auth: AuthService) {}
+  constructor(private auth: AuthService, private router: Router) {}
 
   onSubmit() {
+    if (!this.email) {
+      this.error.set('Please enter your email');
+      return;
+    }
     this.loading = true;
-    const body = { name: this.name, email: this.email, password: this.password };
-    this.auth.register(body).subscribe({
+    this.error.set('');
+    this.auth.forgetPasswordStart(this.email).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigateByUrl('/signup-confirmation');
+        this.router.navigateByUrl('/password-reset-email-sent');
       },
       error: (err) => {
         console.log(err);
-        const message = err?.error.error.error || err.error?.Name[0] || 'Registration failed';
-        this.error.set(message);
+
         this.loading = false;
+        const msg = err?.error?.message || err?.error || 'Request failed';
+        this.error.set(msg);
       },
     });
   }

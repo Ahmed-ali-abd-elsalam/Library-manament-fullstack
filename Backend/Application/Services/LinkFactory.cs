@@ -24,7 +24,7 @@ namespace Application.Services
             }
             else if (Mode == tokenModes.PasswordReset.ToString())
             {
-                action = "resetpassword";
+                action = "resetpasswordTokenConsumption";
 
             }
             return _linkGenerator.GetUriByAction(

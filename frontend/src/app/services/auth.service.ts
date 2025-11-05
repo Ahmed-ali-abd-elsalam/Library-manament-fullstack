@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 
@@ -20,69 +20,88 @@ export interface UserInfo {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private tokenSignal = signal<string | null>(this.getTokenFromStorage());
-  private userInfoSignal = signal<string | null>(this.getUserFromStorage());
+  // --- LocalStorage Keys ---
+  private readonly tokenKey = 'access_token';
+  private readonly refreshTokenKey = 'refresh_token';
+  private readonly userInfoKey = 'user_info';
+
+  // --- Backend Endpoints ---
   private readonly loginUrl = 'https://localhost:7205/api/Auth/login';
   private readonly registerUrl = 'https://localhost:7205/api/Auth/register';
-  private readonly tokenKey = 'access_token';
-  private readonly userInfoKey = 'user_info';
+  private readonly forgetPasswordUrl = 'https://localhost:7205/api/Auth/forget-password';
+  private readonly forgetPasswordStartUrl = 'https://localhost:7205/api/Auth/forget-Password-start';
+  private readonly refreshUrl = 'https://localhost:7205/api/Auth/refresh-token';
+
+  // --- Signals ---
+  private tokenSignal = signal<string | null>(this.getTokenFromStorage());
+  private refreshTokenSignal = signal<string | null>(this.getRefreshTokenFromStorage());
+  private userInfoSignal = signal<string | null>(this.getUserFromStorage());
+
+  readonly token = this.tokenSignal;
+  readonly userInfo = this.userInfoSignal;
+  readonly refreshToken = this.refreshTokenSignal;
+  readonly isAuthenticated = computed(() => !!this.tokenSignal());
 
   constructor(private http: HttpClient) {}
 
+  // --- LocalStorage Accessors ---
   private getTokenFromStorage() {
     return localStorage.getItem(this.tokenKey);
+  }
+  private getRefreshTokenFromStorage() {
+    return localStorage.getItem(this.refreshTokenKey);
   }
   private getUserFromStorage() {
     return localStorage.getItem(this.userInfoKey);
   }
+
+  // --- Token & User Info Setters ---
   getToken(): string | null {
-    try {
-      return this.tokenSignal();
-    } catch {
-      return null;
-    }
+    return this.tokenSignal();
   }
 
   setToken(token: string): void {
-    try {
-      localStorage.setItem(this.tokenKey, token);
-      this.tokenSignal.set(token);
-    } catch {}
+    localStorage.setItem(this.tokenKey, token);
+    this.tokenSignal.set(token);
   }
 
-  clearToken(): void {
-    try {
-      localStorage.removeItem(this.tokenKey);
-      this.tokenSignal.set(null);
-      localStorage.removeItem(this.userInfoKey);
-    } catch {}
+  setRefreshToken(token: string): void {
+    localStorage.setItem(this.refreshTokenKey, token);
+    this.refreshTokenSignal.set(token);
+  }
+
+  clearLocalStorage(): void {
+    localStorage.removeItem(this.tokenKey);
+    this.tokenSignal.set(null);
+
+    localStorage.removeItem(this.userInfoKey);
+    this.userInfoSignal.set(null);
+
+    localStorage.removeItem(this.refreshTokenKey);
+    this.refreshTokenSignal.set(null);
   }
 
   getUserInfo(): string | null {
-    try {
-      const userInfoStr = localStorage.getItem(this.userInfoKey);
-      return this.userInfoSignal();
-    } catch {
-      return null;
-    }
+    return this.userInfoSignal();
   }
 
   setUserInfo(userInfo: UserInfo): void {
-    try {
-      localStorage.setItem(this.userInfoKey, JSON.stringify(userInfo));
-      this.userInfoSignal.set(JSON.stringify(userInfo));
-    } catch {}
+    const infoStr = JSON.stringify(userInfo);
+    localStorage.setItem(this.userInfoKey, infoStr);
+    this.userInfoSignal.set(infoStr);
   }
 
+  // --- Auth Endpoints ---
   login(payload: LoginPayload): Observable<void> {
     return this.http.post<any>(this.loginUrl, payload).pipe(
       tap((res) => {
-        const token = this.extractToken(res.data);
-        if (token) {
-          this.setToken(token);
-        }
+        const accessToken = this.extractToken(res.data);
+        const refreshToken = res.data?.refresh_token;
 
-        if (res.data?.name || res.data?.email) {
+        if (accessToken) this.setToken(accessToken);
+        if (refreshToken) this.setRefreshToken(refreshToken);
+
+        if (res.data?.userName || res.data?.email) {
           this.setUserInfo({
             UserName: res.data.userName || 'User',
             email: res.data.email || payload.email,
@@ -94,7 +113,37 @@ export class AuthService {
   }
 
   register(payload: SignupPayload): Observable<void> {
-    return this.http.post<any>(this.registerUrl, payload);
+    return this.http.post<any>(this.registerUrl, payload).pipe(map(() => void 0));
+  }
+
+  forgetPasswordStart(email: string): Observable<void> {
+    const url = `${this.forgetPasswordStartUrl}?Email=${encodeURIComponent(email)}`;
+    return this.http.get<any>(url).pipe(map(() => void 0));
+  }
+
+  resetPassword(args: {
+    tokenId: string;
+    email: string;
+    body: { email: string; newPassword: string; confirmNewPassword: string };
+  }): Observable<void> {
+    const { tokenId, email, body } = args;
+    const url = `${this.forgetPasswordUrl}?TokenId=${encodeURIComponent(
+      tokenId
+    )}&Email=${encodeURIComponent(email)}`;
+    return this.http.put<any>(url, body).pipe(map(() => void 0));
+  }
+
+  refreshAccessToken(): Observable<string | null> {
+    const refreshToken = this.refreshTokenSignal();
+    if (!refreshToken) return new Observable((obs) => obs.next(null));
+
+    return this.http.post<any>(this.refreshUrl, { refresh_token: refreshToken }).pipe(
+      tap((res) => {
+        const newToken = this.extractToken(res.data);
+        if (newToken) this.setToken(newToken);
+      }),
+      map((res) => res?.data?.access_Token || null)
+    );
   }
 
   private extractToken(res: any): string | null {

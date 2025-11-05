@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Results;
+using FluentEmail.Core;
 
 namespace Application.IService
 {
@@ -12,6 +13,6 @@ namespace Application.IService
         public Task<Result> resetPassword(ForgotPasswrodDTO forgetPasswrodDTO, string TokenId, string Email);
         public Task<Result> confirmEmail(string Email, string Token);
         public Task<Result> resetPasswordInitializeAsync(string email);
-
+        public Task<Result> resetPasswordTokenConsumption(string TokenId,string Email);
     }
 }

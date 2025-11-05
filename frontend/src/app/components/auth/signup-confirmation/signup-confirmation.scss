@@ -23,31 +23,16 @@
   color: var(--primary);
 }
 
-.form-field label {
-  font-size: 14px;
-  color: #333;
+.info-text {
+  margin-top: 8px;
+  text-align: center;
+  color: var(--text);
 }
 
 .form-actions {
   display: flex;
   gap: 12px;
-  margin-top: 8px;
-}
-
-.auth-links {
   margin-top: 12px;
-  text-align: center;
-}
-
-.error {
-  margin-top: 12px;
-  color: #b00020;
-}
-
-.info-text {
-  margin-top: 8px;
-  text-align: center;
-  color: var(--text);
 }
 
 @media (max-width: 480px) {

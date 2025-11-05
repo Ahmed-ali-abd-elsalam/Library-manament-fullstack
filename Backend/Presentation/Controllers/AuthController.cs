@@ -1,21 +1,16 @@
 ﻿using Application.DTOs;
 using Application.IService;
-using Application.Mappers;
 using Application.Results;
 using Domain.Entities;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Timeouts;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Presentation.Controllers
 {
     [Controller]
     [Route("/api/[Controller]")]
-    public class AuthController :ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly IAuthService authService;
 
@@ -26,16 +21,17 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> Login([FromBody]LoginMemberDto loginMemberDto,CancellationToken cancellationToken) {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> Login([FromBody] LoginMemberDto loginMemberDto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             string source = HttpContext.Request.Headers["User-Agent"];
-            var memberResponseResult = await authService.Login(loginMemberDto,source,cancellationToken);
+            var memberResponseResult = await authService.Login(loginMemberDto, source, cancellationToken);
             if (!memberResponseResult.IsSuccess)
             {
                 if (memberResponseResult.error == Errors.DoesntExist(typeof(Member).Name)) return NotFound(memberResponseResult);
                 else return BadRequest(memberResponseResult);
             }
-                return Ok(memberResponseResult);
+            return Ok(memberResponseResult);
         }
 
         [HttpPost]
@@ -55,8 +51,8 @@ namespace Presentation.Controllers
         {
             string email = User.FindFirst(ClaimTypes.Email)?.Value;
             if (email == null) return BadRequest("Invalid Token");
-            string source= HttpContext.Request.Headers["User-Agent"];
-            var result = await authService.logOutAsync(email,source ,cancellationToken);
+            string source = HttpContext.Request.Headers["User-Agent"];
+            var result = await authService.logOutAsync(email, source, cancellationToken);
             if (!result.IsSuccess) return NotFound(result);
             return Ok("Logged Out Successfully");
         }
@@ -70,34 +66,47 @@ namespace Presentation.Controllers
             var user = User.Claims.FirstOrDefault(ct => ct.Type == ClaimTypes.Email);
             var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
             string token = authHeader.Substring("Bearer ".Length).Trim();
-            var ResponseDto = await authService.refresh(user.Value,token,source,cancellationToken);
+            var ResponseDto = await authService.refresh(user.Value, token, source, cancellationToken);
             if (!ResponseDto.IsSuccess & ResponseDto.error == Errors.RefreshToken) return BadRequest(ResponseDto);
             return Ok(ResponseDto);
         }
-        
+
         [HttpGet]
         [Route("forget-Password-start")]
         public async Task<IActionResult> resetPasswordToken(string Email)
         {
             Result result = await authService.resetPasswordInitializeAsync(Email);
             if (!result.IsSuccess) return BadRequest(result);
-            return Ok("to Reset your password check your email");
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("forget-password")]
+
+        public async Task<IActionResult> resetpasswordTokenConsumption(string TokenId, string Email)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            Result result = await authService.resetPasswordTokenConsumption(TokenId, Email);
+            if (!result.IsSuccess) return BadRequest(result);
+            string redirectUrl = $"http://localhost:4200/passwordreset?TokenId={Uri.EscapeDataString(TokenId)}&Email={Uri.EscapeDataString(Email)}";
+
+            return Redirect(redirectUrl);
         }
 
         [HttpPut]
         [Route("forget-password")]
 
-        public async Task<IActionResult> resetpassword(string TokenId,string Email,[FromBody]ForgotPasswrodDTO forgotPasswordDTO)
+        public async Task<IActionResult> resetpassword(string TokenId, string Email, [FromBody] ForgotPasswrodDTO forgotPasswordDTO)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            Result result = await authService.resetPassword(forgotPasswordDTO,TokenId,Email);
+            Result result = await authService.resetPassword(forgotPasswordDTO, TokenId, Email);
             if (!result.IsSuccess) return BadRequest(result);
             return Accepted();
         }
 
         [HttpGet]
         [Route("confirm-email")]
-        public async Task<IActionResult> confirmemail(string Email,string TokenId)
+        public async Task<IActionResult> confirmemail(string Email, string TokenId)
         {
             var result = await authService.confirmEmail(Email, TokenId);
             if (!result.IsSuccess) return BadRequest(result);

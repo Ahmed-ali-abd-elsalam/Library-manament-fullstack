@@ -184,8 +184,9 @@ namespace Application.Services
 
         public async Task<Result> resetPassword(ForgotPasswrodDTO forgotPasswrodDTO, string TokenId, string Email)
         {
-            Member? user = await _userManager.FindByEmailAsync(Email);
+            Member? user = await _userManager.FindByEmailAsync(forgotPasswrodDTO.Email);
             if (user is null) return Errors.DoesntExist(typeof(Member).Name);
+            if (user.Email != Email) return Errors.InvalidOperation;
             bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString(), Email);
             if (!validateToken) return Errors.InvalidToken;
             if (!forgotPasswrodDTO.NewPassword.Equals(forgotPasswrodDTO.ConfirmNewPassword)) return Errors.WrongPassword;
@@ -197,6 +198,15 @@ namespace Application.Services
                 return Errors.PasswordNotSecure;
             }
             await unitOfWork.SaveChangesAsync();
+            return Result.success();
+        }
+
+        public async Task<Result> resetPasswordTokenConsumption(string TokenId, string Email)
+        {
+            Member? user = await _userManager.FindByEmailAsync(Email);
+            if (user is null) return Errors.DoesntExist(typeof(Member).Name);
+            bool validateToken = await ConfirmationTokenService.ValidateTokenAsync(Guid.Parse(TokenId), tokenModes.PasswordReset.ToString(), Email);
+            if (!validateToken) return Errors.InvalidToken; ;
             return Result.success();
         }
     }

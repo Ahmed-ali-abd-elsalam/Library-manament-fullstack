@@ -13,37 +13,49 @@ export class Header {
   router = inject(Router);
 
   userName = signal('');
-  isLoggedIn = computed(() => !!this.authservice.getToken());
+  isLoggedIn = this.authservice.isAuthenticated;
 
   constructor() {
     // React to user info signal changes
     effect(() => {
-      const userjson = this.authservice.getUserInfo();
-      if (userjson) {
+      const userJson = this.authservice.userInfo();
+      if (userJson) {
         try {
-          const userInfo = JSON.parse(userjson);
+          const userInfo = JSON.parse(userJson);
           if (userInfo?.UserName) {
             this.userName.set(userInfo.UserName);
           }
         } catch (e) {
           console.error('Invalid user info JSON', e);
         }
+      } else {
+        // clear username when no user info
+        this.userName.set('');
       }
     });
+
+    // Fallback: if signal is empty but localStorage has user_info (e.g., before signal initialization), populate it
+    try {
+      const stored = localStorage.getItem('user_info');
+      if (stored && !this.authservice.userInfo()) {
+        this.authservice.userInfo.set(stored);
+      }
+    } catch (e) {
+      // ignore
+    }
   }
-  // ngOnInit() {
-  //   const userJson = this.authservice.getUserInfo();
-  //   if (userJson) {
-  //     const userInfo = JSON.parse(userJson);
-  //     // transfer userInfo json to object
-  //     if (userInfo?.UserName) {
-  //       this.userName.set(userInfo.UserName);
-  //     }
-  //   }
-  // }
+  ngOnInit() {
+    const stored = localStorage.getItem('user_info');
+    if (stored) {
+      const user = JSON.parse(stored);
+      if (user?.UserName) {
+        this.userName.set(user.UserName);
+      }
+    }
+  }
 
   logOut() {
-    this.authservice.clearToken();
+    this.authservice.clearLocalStorage();
     this.router.navigateByUrl('/');
     this.isLoggedIn();
   }
