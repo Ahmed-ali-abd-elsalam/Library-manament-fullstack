@@ -2,16 +2,16 @@
   <div class="navbar-container">
     <div class="navbar-brand">
       <img src="/books-stack-of-three-svgrepo-com.svg" alt="Library Logo" class="navbar-logo" />
-      <span class="navbar-title">Library Management System</span>
+      <a routerLink="/" class="nav-link">Library Management System</a>
     </div>
 
     @if (isLoggedIn()) {
     <nav class="navbar-menu logged-in">
-      <a routerLink="/borrowed-books" class="nav-link">Borrowed Books</a>
+      <a routerLink="/borrowed-books" class="nav-link">Borrow Requests</a>
       @if (isAdmin()) {
-        <a routerLink="/members" class="nav-link">Members</a>
+      <a routerLink="/members" class="nav-link">Members</a>
       }
-      <a routerLink="/me" class="nav-link username">{{ userName() }}</a>
+      <a routerLink="/me" class="nav-link">{{ userName() }}</a>
       <button (click)="logOut()" class="nav-link logout-btn">Logout</button>
     </nav>
     } @else {

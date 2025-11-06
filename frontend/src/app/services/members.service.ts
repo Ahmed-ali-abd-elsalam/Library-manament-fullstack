@@ -23,7 +23,7 @@ export class MembersService {
 
   constructor(private http: HttpClient) {}
 
-  getMembers(query: MembersQuery = {}): Observable<Member[]> {
+  getMembers(query: MembersQuery = {}): Observable<any> {
     let params = new HttpParams();
 
     if (query.UserName) params = params.set('UserName', query.UserName);
@@ -36,10 +36,12 @@ export class MembersService {
 
     return this.http.get<any>(this.baseUrl, { params }).pipe(
       map((res) => {
-        const data = res?.data ?? res?.items ?? res;
-        if (Array.isArray(data)) return data as Member[];
-        if (Array.isArray(data?.items)) return data.items as Member[];
-        return [] as Member[];
+        const data = res?.data?.members ?? res?.items ?? res;
+        return res?.data
+        // const members = data.filter((member: any) => member.email != 'admin@library.com');
+        // if (Array.isArray(data)) return members as Member[];
+        // if (Array.isArray(data?.items)) return data.items as Member[];
+        // return [] as Member[];
       })
     );
   }

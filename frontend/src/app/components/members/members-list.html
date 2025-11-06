@@ -17,7 +17,11 @@
       </label>
       <label class="filter-item">
         <span class="filter-label">Page size</span>
-        <select [(ngModel)]="pageSize" class="page-size-select">
+        <select
+          [ngModel]="pageSize()"
+          (ngModelChange)="pageSize.set($event)"
+          class="page-size-select"
+        >
           <option [ngValue]="5">5</option>
           <option [ngValue]="10">10</option>
           <option [ngValue]="20">20</option>
@@ -40,18 +44,18 @@
     </div>
 
     <div class="table-row" *ngFor="let m of members()">
-      <div class="col-name">{{ m.Name || m.name }}</div>
-      <div class="col-email">{{ m.Email || m.email }}</div>
-      <div class="col-late">{{ m.lateReturns ?? m.LateReturns ?? 0 }}</div>
+      <div class="col-name">{{ m.name }}</div>
+      <div class="col-email">{{ m.email }}</div>
+      <div class="col-late">{{ m.lateReturns }}</div>
       <div class="col-actions">
-        <a [routerLink]="['/members', m.Email || m.email]" class="row-link">View</a>
+        <a [routerLink]="['/members', m.email]" class="row-link">View</a>
       </div>
     </div>
 
     <div class="table-footer">
-      <button class="btn" (click)="prevPage()" [disabled]="pageIndex() === 0">Prev</button>
+      <button class="btn" (click)="prevPage()" [disabled]="!prev()">Prev</button>
       <span class="page-indicator">Page {{ pageIndex() + 1 }}</span>
-      <button class="btn" (click)="nextPage()">Next</button>
+      <button class="btn" (click)="nextPage()" [disabled]="!next()">Next</button>
     </div>
 
     <div class="error-text" *ngIf="error()">{{ error() }}</div>
@@ -59,7 +63,7 @@
   <ng-template #loadingTpl>
     <div class="loading-state">Loading...</div>
   </ng-template>
-
+  <!--
   <section class="create-panel">
     <h3 class="section-title">Create new member</h3>
     <div class="create-form">
@@ -79,5 +83,5 @@
     </div>
     <div class="success-text" *ngIf="createSuccess()">{{ createSuccess() }}</div>
     <div class="error-text" *ngIf="createError()">{{ createError() }}</div>
-  </section>
+  </section> -->
 </div>

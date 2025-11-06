@@ -1,6 +1,6 @@
 export interface Member {
-  Id:number;
-Email:string;
-Name:string;
-lateReturns:number;
+  id: number;
+  email: string;
+  name: string;
+  lateReturns: number;
 }
