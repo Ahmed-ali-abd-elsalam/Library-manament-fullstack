@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+import { adminGuard } from './guards/admin.guard';
+
 export const routes: Routes = [
   {
     path: '',
@@ -40,5 +42,22 @@ export const routes: Routes = [
     path: 'signup-confirmation',
     loadComponent: () =>
       import('./components/auth/signup-confirmation/signup-confirmation').then((m) => m.SignupConfirmationComponent),
+  },
+  {
+    path: 'members',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./components/members/members-list').then((m) => m.MembersListComponent),
+  },
+  {
+    path: 'members/:email',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./components/members/member-detail').then((m) => m.MemberDetailComponent),
+  },
+  {
+    path: 'me',
+    loadComponent: () =>
+      import('./components/members/me-profile').then((m) => m.MeProfileComponent),
   },
 ];

@@ -15,6 +15,10 @@ export class Header {
   userName = signal('');
   isLoggedIn = this.authservice.isAuthenticated;
 
+  isAdmin() {
+    return this.authservice.isAdmin();
+  }
+
   constructor() {
     // React to user info signal changes
     effect(() => {

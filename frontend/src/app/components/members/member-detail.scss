@@ -1,0 +1,9 @@
+.member-detail-page { padding: 20px; }
+.page-title { margin: 0 0 16px 0; font-size: 22px; font-weight: 600; }
+.detail-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+.detail-row { display: grid; grid-template-columns: 1fr 2fr; border-top: 1px solid #f1f5f9; }
+.detail-row:first-child { border-top: 0; }
+.detail-key { background: #f8fafc; padding: 10px 12px; font-weight: 600; }
+.detail-value { padding: 10px 12px; }
+.loading-state { padding: 20px; }
+.error-text { color: #b91c1c; margin: 8px 0; }

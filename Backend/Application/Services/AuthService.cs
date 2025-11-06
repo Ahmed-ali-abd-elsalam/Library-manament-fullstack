@@ -54,25 +54,11 @@ namespace Application.Services
             if (!user.EmailConfirmed) return Errors.EmailNotConfirmed;
             var userRoles = await _userManager.GetRolesAsync(user);
             string key = $"{loginMemberDto.Email}-{source}";
-            //string Access_Token = await cache.GetStringAsync(key, cancellationToken);
             string Refresh_token = await tokenService.createTokenAsync(user, userRoles, "Refresh Token", source);
             user.RefreshToken = Refresh_token;
             await memberRepository.editMemberAsync(loginMemberDto.Email, user);
-            //if (Access_Token is not null)
-            //{
-            //    return new LoginResponseDto
-            //    {
-            //        Email = loginMemberDto.Email,
-            //        Access_Token = Access_Token,
-            //        Refresh_token = Refresh_token
-            //    };
-            //}
             string Access_Token = await tokenService.createTokenAsync(user, userRoles, "Response Token", source);
-            //await cache.SetStringAsync(
-            //    key,
-            //    Access_Token,
-            //    new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30)),
-            //    cancellationToken);
+            await unitOfWork.SaveChangesAsync();
             return new LoginResponseDto
             {
                 Email = loginMemberDto.Email,
@@ -91,27 +77,28 @@ namespace Application.Services
                 return Errors.RefreshToken;
             }
             var userRoles = await _userManager.GetRolesAsync(user);
-            string key = $"{userEmail}-{source}";
-            string ResponseToken = await cache.GetStringAsync(key, cancellationToken);
-            if (ResponseToken is not null)
-            {
-                return new LoginResponseDto
-                {
-                    UserName = user.UserName,
-                    Email = userEmail,
-                    Access_Token = ResponseToken,
-                    Refresh_token = RefreshToken
-                };
-            }
-            ResponseToken = await tokenService.createTokenAsync(user, userRoles, "Response Token", source);
-            await cache.SetStringAsync(
-                key,
-                ResponseToken,
-                new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30)),
-                cancellationToken);
+            //string key = $"{userEmail}-{source}";
+            //string ResponseToken = await cache.GetStringAsync(key, cancellationToken);
+            //if (ResponseToken is not null)
+            //{
+            //    return new LoginResponseDto
+            //    {
+            //        UserName = user.UserName,
+            //        Email = userEmail,
+            //        Access_Token = ResponseToken,
+            //        Refresh_token = RefreshToken
+            //    };
+            //}
+            string ResponseToken = await tokenService.createTokenAsync(user, userRoles, "Response Token", source);
+            //await cache.SetStringAsync(
+            //    key,
+            //    ResponseToken,
+            //    new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30)),
+            //    cancellationToken);
             return new LoginResponseDto
 
             {
+                UserName = user.UserName,
                 Email = userEmail,
                 Access_Token = ResponseToken,
                 Refresh_token = RefreshToken

@@ -1,0 +1,18 @@
+<div class="me-page">
+  <h2 class="page-title">My profile</h2>
+
+  <div *ngIf="!loading(); else loadingTpl">
+    <div class="error-text" *ngIf="error()">{{ error() }}</div>
+
+    <div class="detail-card" *ngIf="me() as m">
+      <div class="detail-row" *ngFor="let k of keys(m)">
+        <div class="detail-key">{{ k }}</div>
+        <div class="detail-value">{{ m[k] }}</div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingTpl>
+    <div class="loading-state">Loading...</div>
+  </ng-template>
+</div>

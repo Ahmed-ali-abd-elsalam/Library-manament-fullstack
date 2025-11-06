@@ -25,6 +25,39 @@ export class AuthService {
   private readonly refreshTokenKey = 'refresh_token';
   private readonly userInfoKey = 'user_info';
 
+  // --- Role helpers ---
+  isAdmin(): boolean {
+    const roles = this.getRolesFromToken();
+    return roles.some((r) => /^(admin|administrator)$/i.test(String(r)) || String(r) === '1');
+  }
+
+  getRolesFromToken(): string[] {
+    const token = this.getToken();
+    if (!token) return [];
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1] || ''));
+      const roleClaimKeys = [
+        'role',
+        'roles',
+        'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role',
+        'permissions',
+      ];
+      for (const key of roleClaimKeys) {
+        if (payload[key]) {
+          const val = payload[key];
+          if (Array.isArray(val)) return val.map(String);
+          if (typeof val === 'string') return val.split(',').map((s: string) => s.trim());
+          if (typeof val === 'number') return [String(val)];
+        }
+      }
+      if (payload?.isAdmin === true || payload?.IsAdmin === true) return ['Admin'];
+    } catch {
+      // ignore decoding errors
+    }
+    return [];
+  }
+
   // --- Backend Endpoints ---
   private readonly loginUrl = 'https://localhost:7205/api/Auth/login';
   private readonly registerUrl = 'https://localhost:7205/api/Auth/register';

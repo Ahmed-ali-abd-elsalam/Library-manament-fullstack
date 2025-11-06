@@ -1,0 +1,83 @@
+<div class="members-page">
+  <h2 class="page-title">Members</h2>
+
+  <section class="search-panel">
+    <div class="filters">
+      <label class="filter-item">
+        <span class="filter-label">User name</span>
+        <input [(ngModel)]="userName" placeholder="Enter username" class="filter-input" />
+      </label>
+      <label class="filter-item">
+        <span class="filter-label">Email</span>
+        <input [(ngModel)]="email" placeholder="Enter email" class="filter-input" />
+      </label>
+      <label class="filter-item">
+        <span class="filter-label">Phone</span>
+        <input [(ngModel)]="phoneNumber" placeholder="Enter phone" class="filter-input" />
+      </label>
+      <label class="filter-item">
+        <span class="filter-label">Page size</span>
+        <select [(ngModel)]="pageSize" class="page-size-select">
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+        </select>
+      </label>
+    </div>
+    <div class="filter-actions">
+      <button (click)="onSearch()" class="btn primary">Search</button>
+      <button (click)="onReset()" class="btn">Reset</button>
+    </div>
+  </section>
+
+  <section class="members-table" *ngIf="!loading(); else loadingTpl">
+    <div class="table-header">
+      <div class="col-name">Name</div>
+      <div class="col-email">Email</div>
+      <div class="col-late">Late returns</div>
+      <div class="col-actions">Actions</div>
+    </div>
+
+    <div class="table-row" *ngFor="let m of members()">
+      <div class="col-name">{{ m.Name || m.name }}</div>
+      <div class="col-email">{{ m.Email || m.email }}</div>
+      <div class="col-late">{{ m.lateReturns ?? m.LateReturns ?? 0 }}</div>
+      <div class="col-actions">
+        <a [routerLink]="['/members', m.Email || m.email]" class="row-link">View</a>
+      </div>
+    </div>
+
+    <div class="table-footer">
+      <button class="btn" (click)="prevPage()" [disabled]="pageIndex() === 0">Prev</button>
+      <span class="page-indicator">Page {{ pageIndex() + 1 }}</span>
+      <button class="btn" (click)="nextPage()">Next</button>
+    </div>
+
+    <div class="error-text" *ngIf="error()">{{ error() }}</div>
+  </section>
+  <ng-template #loadingTpl>
+    <div class="loading-state">Loading...</div>
+  </ng-template>
+
+  <section class="create-panel">
+    <h3 class="section-title">Create new member</h3>
+    <div class="create-form">
+      <label class="form-field"
+        ><span>Name</span>
+        <input [(ngModel)]="newName" placeholder="Full name" />
+      </label>
+      <label class="form-field"
+        ><span>Email</span>
+        <input [(ngModel)]="newEmail" placeholder="user@example.com" />
+      </label>
+      <label class="form-field"
+        ><span>Password</span>
+        <input [(ngModel)]="newPassword" type="password" placeholder="password" />
+      </label>
+      <button class="btn primary" (click)="createMember()">Create</button>
+    </div>
+    <div class="success-text" *ngIf="createSuccess()">{{ createSuccess() }}</div>
+    <div class="error-text" *ngIf="createError()">{{ createError() }}</div>
+  </section>
+</div>

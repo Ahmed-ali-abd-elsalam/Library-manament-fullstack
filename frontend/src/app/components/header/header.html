@@ -8,7 +8,10 @@
     @if (isLoggedIn()) {
     <nav class="navbar-menu logged-in">
       <a routerLink="/borrowed-books" class="nav-link">Borrowed Books</a>
-      <span class="nav-link username">{{ userName() }}</span>
+      @if (isAdmin()) {
+        <a routerLink="/members" class="nav-link">Members</a>
+      }
+      <a routerLink="/me" class="nav-link username">{{ userName() }}</a>
       <button (click)="logOut()" class="nav-link logout-btn">Logout</button>
     </nav>
     } @else {

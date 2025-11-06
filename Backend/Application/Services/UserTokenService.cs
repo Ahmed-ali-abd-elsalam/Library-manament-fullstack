@@ -77,7 +77,7 @@ namespace Application.Services
                    issuer: configuration.GetValue<string>("AppSettings:Issuer"),
                    audience: configuration.GetValue<string>("AppSettings:Audience"),
                    claims: claims,
-                   expires: DateTime.UtcNow.AddMinutes(1),
+                   expires: DateTime.UtcNow.AddMinutes(30),
                    signingCredentials: creds
                );
             }
@@ -92,21 +92,7 @@ namespace Application.Services
                     signingCredentials: creds
                 );
             }
-            //string Token = new JwtSecurityTokenHandler().ReadJwtToken();
             string Token = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
-            //if(mode == "Response Token")
-            //{
-            //    UserToken userToken = new UserToken
-            //    {
-            //        token = Token,
-            //        source = source,
-            //        userEmail = member.Email,
-            //        user = member,
-            //        userId = member.Id,
-            //        ExpiresAt = DateTime.UtcNow.AddMinutes(30),
-            //    };
-            //    await _repository.createUserTokenAsync(userToken);
-            //}
             return Token;
         }
         public bool checkTokenValid(string token)

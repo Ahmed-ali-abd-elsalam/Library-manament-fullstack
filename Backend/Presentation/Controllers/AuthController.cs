@@ -4,6 +4,7 @@ using Application.Results;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Security.Claims;
 
 namespace Presentation.Controllers
@@ -31,6 +32,7 @@ namespace Presentation.Controllers
                 if (memberResponseResult.error == Errors.DoesntExist(typeof(Member).Name)) return NotFound(memberResponseResult);
                 else return BadRequest(memberResponseResult);
             }
+            Log.Information("user logged in Successfully");
             return Ok(memberResponseResult);
         }
 
@@ -68,6 +70,7 @@ namespace Presentation.Controllers
             string token = authHeader.Substring("Bearer ".Length).Trim();
             var ResponseDto = await authService.refresh(user.Value, token, source, cancellationToken);
             if (!ResponseDto.IsSuccess & ResponseDto.error == Errors.RefreshToken) return BadRequest(ResponseDto);
+            Log.Information("token refreshed successfully");
             return Ok(ResponseDto);
         }
 

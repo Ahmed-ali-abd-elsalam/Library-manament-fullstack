@@ -27,7 +27,6 @@ function shouldSkipAuth(req: HttpRequest<unknown>): boolean {
   return (
     url.includes('/auth/login') ||
     url.includes('/auth/register') ||
-    url.includes('/auth/refresh') ||
     req.headers.has('Authorization')
   );
 }
@@ -53,7 +52,6 @@ export const authInterceptor: HttpInterceptorFn = (
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse && error.status === 401) {
         const refreshToken = getRefreshToken();
-
         // No refresh token → logout
         if (!refreshToken) {
           localStorage.removeItem('access_token');
@@ -63,33 +61,33 @@ export const authInterceptor: HttpInterceptorFn = (
 
         // Attempt to refresh access token
         return http
-          .post<any>('https://localhost:7205/api/Auth/refresh', {
-            refresh_token: refreshToken,
-          })
+          .post<any>(
+            'https://localhost:7205/api/Auth/refresh',
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${refreshToken}`,
+              },
+            }
+          )
           .pipe(
             switchMap((res) => {
-              console.log(res);
-
               const newAccessToken =
                 res?.data?.access_Token || res?.data?.token || res?.data?.jwt || null;
-
               if (!newAccessToken) {
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
                 router.navigateByUrl('/login');
                 return throwError(() => error);
               }
-
               // Save new token
               setAccessToken(newAccessToken);
-
               // Retry the original request with the new token
               const clonedReq = req.clone({
                 setHeaders: {
                   Authorization: `Bearer ${newAccessToken}`,
                 },
               });
-
               return next(clonedReq);
             }),
             catchError((refreshErr) => {
@@ -101,7 +99,6 @@ export const authInterceptor: HttpInterceptorFn = (
             })
           );
       }
-
       // For non-401 errors, just propagate
       return throwError(() => error);
     })
