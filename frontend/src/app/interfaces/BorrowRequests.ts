@@ -1,13 +1,13 @@
 export interface BorrowRequests {
- Id:number;
-BorrowDate :number;
-ReturnDate :number;
-borrowDuration :number;
-BookId :number;
-BookTitle :string;
-StockCopies :number;
-MemberId : string;
-Email :string;
-LateReturns :number;
-status :string;
+  id: number;
+  borrowDate: string | null;
+  returnDate: string | null;
+  borrowDuration: number;
+  bookId: number;
+  bookTitle: string;
+  stockCopies: number;
+  memberId: string;
+  email: string;
+  lateReturns: number;
+  status: string;
 }

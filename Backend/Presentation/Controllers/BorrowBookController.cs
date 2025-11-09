@@ -36,10 +36,10 @@ namespace Presentation.Controllers
         [HttpPut]
         [Authorize(Roles = "Member")]
         [Route("return/{BookId}")]
-        public async Task<IActionResult> ReturnBook(int BookId, int borrowDuration)
+        public async Task<IActionResult> ReturnBook(int BookId)
         {
-            string Email = User.FindFirst("Id")?.Value;
-            var borrowRecordResult = await borrowRecordService.ReturnBook(BookId, Email);
+            string userId = User.FindFirst("Id")?.Value;
+            var borrowRecordResult = await borrowRecordService.ReturnBook(BookId, userId);
             if (!borrowRecordResult.IsSuccess)
             {
                 if (borrowRecordResult.error == Errors.DoesntExist(typeof(Book).Name)) return NotFound(borrowRecordResult);
@@ -100,10 +100,10 @@ namespace Presentation.Controllers
         public async Task<IActionResult> editBorrowRecord(int id, string status)
         {
             //check if current user has admin role he can check any records else check if the record is owned by the logged in user
-            var borrowRecordResult = await borrowRecordService.HandleBorrowRequests(id,status);
+            var borrowRecordResult = await borrowRecordService.HandleBorrowRequests(id, status);
             if (!borrowRecordResult.IsSuccess)
             {
-                if (borrowRecordResult.error == Errors.DoesntExist(typeof(BorrowRecord).Name) )return NotFound(borrowRecordResult);
+                if (borrowRecordResult.error == Errors.DoesntExist(typeof(BorrowRecord).Name)) return NotFound(borrowRecordResult);
                 return BadRequest(borrowRecordResult);
             }
             return Ok(borrowRecordResult);

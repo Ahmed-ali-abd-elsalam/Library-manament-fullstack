@@ -23,7 +23,7 @@ namespace Application.Services
         public async Task<Result<PaginatedMemberResponseDto>> GetMembers(int offset, int pagesize, MembersFilter membersFilter)
         {
             int total = await _repository.GetTotalCountAsync(membersFilter);
-            bool HasNext = offset + 1 * pagesize < total;
+            bool HasNext = (offset + 1) * pagesize < total;
             bool HasPrev = offset > 0;
             var members = await _repository.GetMembersAsync(membersFilter, offset, pagesize);
             List<MemberResponseDto> membersDtos = [];

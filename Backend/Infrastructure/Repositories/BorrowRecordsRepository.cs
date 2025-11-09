@@ -2,7 +2,6 @@
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Infrastructure.Repositories
 {
@@ -25,7 +24,7 @@ namespace Infrastructure.Repositories
 
         public async Task<BorrowRecord?> GetBorrowRecordAsync(int bookId, string MemberId)
         {
-            return await _context.BorrowRecords.Include(Br => Br.Member).Include(Br => Br.Book).OrderBy(BR => BR.BookId).OrderBy(Br => Br.Id).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
+            return await _context.BorrowRecords.Include(Br => Br.Member).Include(Br => Br.Book).OrderBy(BR => BR.BookId).OrderByDescending(Br => Br.Id).FirstOrDefaultAsync(BR => BR.BookId == bookId && BR.MemberId == MemberId);
         }
         public async Task<BorrowRecord?> GetBorrowRecordAsync(int BorrowRecordId)
         {

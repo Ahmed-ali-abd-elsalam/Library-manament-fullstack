@@ -1,24 +1,17 @@
-<div class="member-detail-page">
-  <h2 class="page-title">Member details</h2>
+<div id="component">
+  <h2 class="page-title">Borrow requests</h2>
 
   <div *ngIf="!loading(); else loadingTpl">
     <div class="error-text" *ngIf="error()">{{ error() }}</div>
 
-    <div class="detail-card" *ngIf="member() as m">
-      <div class="detail-row" *ngFor="let k of keys(m)">
-        <div class="detail-key">{{ k }}</div>
-        <div class="detail-value">{{ m[k] }}</div>
-      </div>
-    </div>
-
     <section class="requests-section">
       <div class="requests-header">
-        <h3 class="section-title">Borrow requests</h3>
+        <h3 class="section-title">All requests</h3>
         <label class="page-size-control">
           <span>Page size</span>
           <select
-            [ngModel]="reqPageSize()"
-            (ngModelChange)="reqPageSize.set($event)"
+            [ngModel]="pageSize()"
+            (ngModelChange)="onPageSizeChange($event)"
             class="page-size-select"
           >
             <option [ngValue]="5">5</option>
@@ -29,12 +22,13 @@
         </label>
       </div>
 
-      <ng-container *ngIf="!requestsLoading(); else reqLoadingTpl">
-        <div class="error-text" *ngIf="requestsError()">{{ requestsError() }}</div>
+      <ng-container *ngIf="!listLoading(); else reqLoadingTpl">
+        <div class="error-text" *ngIf="listError()">{{ listError() }}</div>
 
         <div class="requests-table">
           <div class="table-header">
             <div class="col-title">Title</div>
+            <div class="col-member">Member</div>
             <div class="col-borrow">Borrow date</div>
             <div class="col-return">Return date</div>
             <div class="col-duration">Duration</div>
@@ -42,17 +36,34 @@
             <div class="col-status">Status</div>
             <div class="col-action">Action</div>
           </div>
-          <div class="table-row" *ngFor="let r of borrowRequests()">
-            <div class="col-title">{{ r.BookTitle || r.bookTitle }}</div>
-            <div class="col-borrow">{{ formatDate(r.BorrowDate || r.borrowDate) }}</div>
-            <div class="col-return">{{ formatDate(r.ReturnDate || r.returnDate) }}</div>
+          <div class="table-row" *ngFor="let r of requests()">
+            <div class="col-title">{{ r.bookTitle }}</div>
+            <div class="col-member">
+              <a [routerLink]="['/members', r.email]" class="member-link">
+                {{ r.email }}
+              </a>
+            </div>
+            <div class="col-borrow">{{ formatDate(r.borrowDate) }}</div>
+            <div class="col-return">{{ formatDate(r.returnDate) }}</div>
             <div class="col-duration">{{ r.borrowDuration }}</div>
-            <div class="col-stock">{{ r.StockCopies ?? r.stockCopies ?? r.Stock ?? '-' }}</div>
+            <div class="col-stock">{{ r.stockCopies }}</div>
             <div class="col-status">{{ r.status }}</div>
             <div class="col-action">
               <ng-container *ngIf="isPending(r); else noActions">
-                <button class="btn accept" (click)="onAction(r, 'approved')" [disabled]="isProcessing(r)">✓ Accept</button>
-                <button class="btn deny" (click)="onAction(r, 'denied')" [disabled]="isProcessing(r)">✕ Deny</button>
+                <button
+                  class="btn accept"
+                  (click)="onAction(r, 'approved')"
+                  [disabled]="isProcessing(r)"
+                >
+                  ✓ Accept
+                </button>
+                <button
+                  class="btn deny"
+                  (click)="onAction(r, 'denied')"
+                  [disabled]="isProcessing(r)"
+                >
+                  ✕ Deny
+                </button>
               </ng-container>
               <ng-template #noActions>
                 <span class="action-placeholder">-</span>
@@ -60,9 +71,9 @@
             </div>
           </div>
           <div class="table-footer">
-            <button class="btn" (click)="prevReqPage()" [disabled]="!reqHasPrev()">Prev</button>
-            <span class="page-indicator">Page {{ reqPageIndex() + 1 }}</span>
-            <button class="btn" (click)="nextReqPage()" [disabled]="!reqHasNext()">Next</button>
+            <button class="btn" (click)="prevPage()" [disabled]="!hasPrev()">Prev</button>
+            <span class="page-indicator">Page {{ pageIndex() + 1 }}</span>
+            <button class="btn" (click)="nextPage()" [disabled]="!hasNext()">Next</button>
           </div>
         </div>
       </ng-container>

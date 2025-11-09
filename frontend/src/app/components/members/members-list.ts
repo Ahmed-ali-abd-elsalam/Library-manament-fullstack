@@ -56,7 +56,9 @@ export class MembersListComponent {
     this.error.set('');
     this.membersService.getMembers(this.buildQuery()).subscribe({
       next: (data) => {
-        this.members.set(data?.members ?? []);
+        const allMembers =
+          data?.members.filter((m: Member) => m.email !== 'admin@library.com') ?? [];
+        this.members.set(allMembers);
         this.pageIndex.set(data?.offset);
         this.pageSize.set(data?.pageSize);
         this.next.set(data?.hasNext ?? false);

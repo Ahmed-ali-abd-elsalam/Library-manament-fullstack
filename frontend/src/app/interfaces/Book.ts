@@ -6,4 +6,5 @@ export interface Book {
   copies: number;
   copiesAvailable?: number;
   rating?: number;
+  available?: boolean;
 }

@@ -10,6 +10,7 @@
       <a routerLink="/borrowed-books" class="nav-link">Borrow Requests</a>
       @if (isAdmin()) {
       <a routerLink="/members" class="nav-link">Members</a>
+      <a routerLink="/admin/books" class="nav-link">Manage Books</a>
       }
       <a routerLink="/me" class="nav-link">{{ userName() }}</a>
       <button (click)="logOut()" class="nav-link logout-btn">Logout</button>

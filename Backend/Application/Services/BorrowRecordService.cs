@@ -27,8 +27,8 @@ namespace Application.Services
         {
             string UserId = User.FindFirstValue("Id");
             string userEmail = User.FindFirstValue(ClaimTypes.Email);
-            var borrowRecord  = await _repository.GetBorrowRecordAsync(bookID, UserId);
-            if (borrowRecord != null) return Errors.RepeatedOperation;
+            var borrowRecord = await _repository.GetBorrowRecordAsync(bookID, UserId);
+            if (borrowRecord is not null && (borrowRecord.Status != borrowStatus.Returned && borrowRecord.Status != borrowStatus.Denied)) return Errors.RepeatedOperation;
             bool bookExists = await _bookrepository.CheckExistsAsync(bookID);
             if (!bookExists) return Errors.DoesntExist(typeof(Book).Name);
             bool bookAvailable = await _bookrepository.CheckAvailableAsync(bookID);
@@ -53,7 +53,8 @@ namespace Application.Services
             if (!await _repository.CheckExistsAsync(bookID, userId))
                 return Errors.DoesntExist(typeof(Member).Name);
             BorrowRecord borrowRecord = await _repository.GetBorrowRecordAsync(bookID, userId);
-            if (borrowRecord.ReturnDate != null) return Errors.RepeatedOperation;
+            if (borrowRecord.Status == borrowStatus.Returned) return Errors.RepeatedOperation;
+            if (borrowRecord.Status == borrowStatus.Pending || borrowRecord.Status == borrowStatus.Denied) return Errors.InvalidOperation;
             Book book = await _bookrepository.GetBookAsync(bookID);
             book.Copies += 1;
             await _bookrepository.UpdateBookAsync(bookID, book);

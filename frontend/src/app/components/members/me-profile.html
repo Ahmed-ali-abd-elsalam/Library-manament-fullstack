@@ -10,6 +10,44 @@
         <div class="detail-value">{{ m[k] }}</div>
       </div>
     </div>
+
+    <section class="requests-section">
+      <div class="requests-header">
+        <h3 class="section-title">My borrow requests</h3>
+      </div>
+
+      <ng-container *ngIf="!requestsLoading(); else reqLoadingTpl">
+        <div class="error-text" *ngIf="requestsError()">{{ requestsError() }}</div>
+
+        <div class="requests-table">
+          <div class="table-header">
+            <div class="col-title">Title</div>
+            <div class="col-borrow">Borrow date</div>
+            <div class="col-return">Return date</div>
+            <div class="col-duration">Duration</div>
+            <div class="col-stock">Stock</div>
+            <div class="col-status">Status</div>
+          </div>
+          <div class="table-row" *ngFor="let r of borrowRequests()">
+            <div class="col-title">{{ r.BookTitle || r.bookTitle }}</div>
+            <div class="col-borrow">{{ formatDate(r.BorrowDate || r.borrowDate) }}</div>
+            <div class="col-return">{{ formatDate(r.ReturnDate || r.returnDate) }}</div>
+            <div class="col-duration">{{ r.borrowDuration }}</div>
+            <div class="col-stock">{{ r.StockCopies ?? r.stockCopies ?? r.Stock ?? '-' }}</div>
+            <div class="col-status">{{ r.status }}</div>
+          </div>
+
+          <div class="table-footer">
+            <button class="btn" (click)="prevPage()" [disabled]="!hasPrev()">Prev</button>
+            <span class="page-indicator">Page {{ pageIndex() + 1 }}</span>
+            <button class="btn" (click)="nextPage()" [disabled]="!hasNext()">Next</button>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #reqLoadingTpl>
+        <div class="loading-state">Loading borrow requests...</div>
+      </ng-template>
+    </section>
   </div>
 
   <ng-template #loadingTpl>

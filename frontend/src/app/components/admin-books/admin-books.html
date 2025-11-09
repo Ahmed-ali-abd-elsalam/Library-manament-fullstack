@@ -1,0 +1,143 @@
+<div id="component">
+  <h2 class="page-title">Manage Books</h2>
+
+  <section class="manage-section">
+    <div class="manage-header">
+      <form (ngSubmit)="onAdd()" class="add-form">
+        <input
+          name="title"
+          [(ngModel)]="newBook.title"
+          placeholder="Title"
+          class="input"
+          required
+        />
+        <input
+          name="author"
+          [(ngModel)]="newBook.author"
+          placeholder="Author"
+          class="input"
+          required
+        />
+        <input
+          name="publishedYear"
+          [(ngModel)]="newBook.publishedYear"
+          placeholder="Published Year"
+          class="input"
+          required
+        />
+        <input
+          name="copies"
+          type="number"
+          [(ngModel)]="newBook.copies"
+          placeholder="Copies"
+          class="input"
+          required
+        />
+        <button class="btn primary" type="submit" [disabled]="adding">Add book</button>
+      </form>
+
+      <div class="search-controls">
+        <input [(ngModel)]="query" placeholder="Search books..." class="input" />
+        <button class="btn" (click)="loadBooks()">Search</button>
+      </div>
+    </div>
+
+    <div class="books-table">
+      <div class="table-header">
+        <div class="col-title">Title</div>
+        <div class="col-author">Author</div>
+        <div class="col-year">Published year</div>
+        <div class="col-copies">Copies</div>
+        <div class="col-actions">Actions</div>
+      </div>
+
+      <div class="table-row">
+        @for (book of books(); track book.id) {
+        <div class="col-title">{{ book.title }}</div>
+        <div class="col-author">{{ book.author }}</div>
+        <div class="col-year">{{ book.publishedYear }}</div>
+        <div class="col-copies">{{ book.copies }}</div>
+        <div class="col-actions">
+          <button class="btn" (click)="startEdit(book)">Edit</button>
+          <button
+            class="btn deny"
+            (click)="onDelete(book)"
+            [disabled]="deletingIds.includes(getId(book))"
+          >
+            Delete
+          </button>
+        </div>
+        }
+      </div>
+
+      <div class="table-footer">
+        <button class="btn" (click)="prevPage()" [disabled]="!hasPrev()">Prev</button>
+        <span class="page-indicator">Page {{ page() }}</span>
+        <button class="btn" (click)="nextPage()" [disabled]="!hasNext()">Next</button>
+        <div class="page-size-control">
+          <label for="pageSizeSelect" class="filter-item">
+            <span class="filter-label">Page size</span>
+            <select
+              id="pageSizeSelect"
+              class="page-size-select"
+              [(ngModel)]="pageSize"
+              (change)="onPageSizeChange()"
+            >
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+              <option [value]="50">50</option>
+            </select>
+          </label>
+
+          <!-- <span class="page-size-label">size</span>
+      <select class="page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+        <option [value]="5">5</option>
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+      </select> -->
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="editing" class="edit-panel">
+      <h3>Edit Book</h3>
+      <form (ngSubmit)="onUpdate()" class="edit-form">
+        <input
+          name="title"
+          [(ngModel)]="editBook.title"
+          placeholder="Title"
+          class="input"
+          required
+        />
+        <input
+          name="author"
+          [(ngModel)]="editBook.author"
+          placeholder="Author"
+          class="input"
+          required
+        />
+        <input
+          name="publishedYear"
+          [(ngModel)]="editBook.publishedYear"
+          placeholder="Published Year"
+          class="input"
+          required
+        />
+        <input
+          name="copies"
+          type="number"
+          [(ngModel)]="editBook.copies"
+          placeholder="Copies"
+          class="input"
+          required
+        />
+        <div class="edit-actions">
+          <button class="btn primary" type="submit" [disabled]="updating">Save</button>
+          <button class="btn" type="button" (click)="cancelEdit()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>

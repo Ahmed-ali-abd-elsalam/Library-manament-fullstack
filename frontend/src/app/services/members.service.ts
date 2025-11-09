@@ -55,6 +55,12 @@ export class MembersService {
     return this.http.get<any>(url).pipe(map((res) => res?.data ?? res));
   }
 
+  getBorrowRequestsForMember(memberKey: string, offset: number = 0, pagesize: number = 10): Observable<any> {
+    const url = `https://localhost:7205/api/borrowBooks/member/${encodeURIComponent(memberKey)}`;
+    let params = new HttpParams().set('offset', String(offset)).set('pagesize', String(pagesize));
+    return this.http.get<any>(url, { params }).pipe(map((res) => res?.data ?? res));
+  }
+
   getMe(): Observable<any> {
     const url = `${this.baseUrl}/me`;
     return this.http.get<any>(url).pipe(map((res) => res?.data ?? res));

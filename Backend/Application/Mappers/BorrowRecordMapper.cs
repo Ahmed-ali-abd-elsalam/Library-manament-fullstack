@@ -12,6 +12,7 @@ namespace Application.Mappers
                 Id = borrowRecord.Id,
                 BookId = borrowRecord.BookId,
                 BorrowDate = borrowRecord.BorrowDate,
+                borrowDuration = borrowRecord.borrowDuration,
                 status = borrowRecord.Status.ToString(),
                 MemberId = borrowRecord.MemberId,
                 ReturnDate = borrowRecord.ReturnDate,

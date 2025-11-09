@@ -7,6 +7,13 @@ interface SearchQuery {
   PublishedYear?: number | string;
 }
 
+export interface BookPayload {
+  author: string;
+  title: string;
+  publishedYear: string;
+  copies: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -34,5 +41,20 @@ export class BookService {
 
   BorrowBook(bookId: number) {
     // TODO
+  }
+
+  createBook(payload: BookPayload) {
+    const url = `${this.baseUrl}/add`;
+    return this.http.post<any>(url, payload);
+  }
+
+  updateBook(id: string | number, payload: Partial<BookPayload>) {
+    const url = `${this.baseUrl}/${encodeURIComponent(String(id))}`;
+    return this.http.put<any>(url, payload);
+  }
+
+  deleteBook(id: string | number) {
+    const url = `${this.baseUrl}/${encodeURIComponent(String(id))}`;
+    return this.http.delete<any>(url);
   }
 }

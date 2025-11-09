@@ -1,4 +1,4 @@
-.members-page { padding: 20px; }
+.members-page { padding: 20px; display: flex; flex-direction: column; min-height: 100vh; }
 .page-title { margin: 0 0 16px 0; font-size: 22px; font-weight: 600; }
 
 .search-panel { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 16px; }
@@ -12,7 +12,7 @@
 .btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
 .btn:disabled { opacity: .6; cursor: default; }
 
-.members-table { border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+.members-table { border: 1px solid #eee; border-radius: 8px; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: auto; }
 .table-header, .table-row { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; align-items: center; }
 .table-header { background: #f8fafc; font-weight: 600; padding: 10px 12px; }
 .table-row { border-top: 1px solid #f1f5f9; padding: 10px 12px; }

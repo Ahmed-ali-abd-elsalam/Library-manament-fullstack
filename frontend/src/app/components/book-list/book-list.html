@@ -12,25 +12,45 @@
   </div>
 
   <div class="book-table-container">
-    <div class="book-table-header" [class.has-action]="isLoggedIn()">
+    <div class="book-table-header" [class.has-action]="isLoggedIn() && !isAdmin()">
       <div class="column-title">title</div>
       <div class="column-author">author</div>
       <div class="column-copies">Copies</div>
       <div class="column-year">published year</div>
-      @if (isLoggedIn()) {
-      <div class="column-action"></div>
+      @if (isLoggedIn() && !isAdmin()) {
+      <div class="column-action">action</div>
       }
     </div>
 
     @for (book of filteredBooks(); track book.id) {
-    <div class="book-row" [class.has-action]="isLoggedIn()">
+    <div class="book-row" [class.has-action]="isLoggedIn() && !isAdmin()">
       <div class="column-title">{{ book.title }}</div>
       <div class="column-author">{{ book.author }}</div>
       <div class="column-copies">{{ book.copiesAvailable || book.copies || 0 }}</div>
       <div class="column-year">{{ book.publishedYear }}</div>
-      @if (isLoggedIn()) {
+      @if (isLoggedIn() && !isAdmin()) {
       <div class="column-action">
-        <button class="borrow-btn" (click)="borrowBook(book.id)">Borrow</button>
+        <div *ngIf="showDurationFor() !== book.id && book.available">
+          <button class="borrow-btn" (click)="borrowBook(book.id)">Borrow</button>
+        </div>
+        <div *ngIf="showDurationFor() === book.id" class="borrow-duration">
+          <input
+            type="number"
+            min="1"
+            [ngModel]="durationValue()"
+            (ngModelChange)="durationValue.set($event)"
+            class="duration-input"
+            placeholder="days"
+          />
+          <button
+            class="btn primary"
+            (click)="submitBorrow(book.id)"
+            [disabled]="isProcessing(book.id)"
+          >
+            Request
+          </button>
+          <button class="btn" (click)="borrowBook(book.id)">Cancel</button>
+        </div>
       </div>
       }
     </div>
@@ -47,13 +67,28 @@
     </div>
 
     <div class="page-size-control">
-      <span class="page-size-label">size</span>
+      <label for="pageSizeSelect" class="filter-item">
+        <span class="filter-label">Page size</span>
+        <select
+          id="pageSizeSelect"
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          (change)="onPageSizeChange()"
+        >
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="50">50</option>
+        </select>
+      </label>
+
+      <!-- <span class="page-size-label">size</span>
       <select class="page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
         <option [value]="5">5</option>
         <option [value]="10">10</option>
         <option [value]="20">20</option>
         <option [value]="50">50</option>
-      </select>
+      </select> -->
     </div>
   </div>
 </div>

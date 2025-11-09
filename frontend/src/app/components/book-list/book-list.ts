@@ -1,10 +1,13 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookService } from '../../services/book-service';
-import { catchError, of } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { Book } from '../../interfaces/Book';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { BorrowService } from '../../services/borrow.service';
+import { BorrowRequests } from '../../interfaces/BorrowRequests';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-book-list',
@@ -22,9 +25,13 @@ export class BookListComponent {
 
   bookService = inject(BookService);
   authService = inject(AuthService);
+  borrowService = inject(BorrowService);
+  borrowedBooks = signal<BorrowRequests[]>([]);
 
   isLoggedIn = computed(() => !!this.authService.getToken());
-
+  isAdmin() {
+    return this.authService.isAdmin();
+  }
   filteredBooks = computed(() => {
     const query = this.searchQuery.toLowerCase().trim();
     if (!query) {
@@ -37,6 +44,11 @@ export class BookListComponent {
         book.publishedYear.toString().includes(query)
     );
   });
+
+  // local UI state for showing duration input and processing
+  showDurationFor = signal<number | null>(null);
+  durationValue = signal<number | null>(2);
+  processingBorrow = signal<number[]>([]);
 
   visiblePages = computed(() => {
     const total = this.totalPages();
@@ -68,33 +80,87 @@ export class BookListComponent {
     this.loadBooks(1, this.pageSize);
   }
 
-  loadBooks(page: number = 1, size: number = 10, title?: any) {
-    /* sets books , total pages , pagesize */
-    this.bookService
-      .getBooks(page, size, title)
-      .pipe(
-        catchError((err) => {
+  // loadBooks(page: number = 1, size: number = 10, title?: any) {
+  //   /* sets books , total pages , pagesize */
+  //   this.bookService
+  //     .getBooks(page, size, title)
+  //     .pipe(
+  //       catchError((err) => {
+  //         console.error('Error loading books:', err);
+  //         return of({ data: { books: [], total: 0, offset: 0 } });
+  //       })
+  //     )
+  //     .subscribe((response) => {
+  //       const data = response.data;
+
+  //       this.books.set(data?.books || []);
+  //       this.books().forEach((book) => {
+  //         book.available = (book.copiesAvailable ?? book.copies) > 0;
+  //       });
+  //       const totalBooks = Number(data?.total ?? 0);
+  //       const calculatedTotalPages = Math.max(
+  //         1,
+  //         Math.ceil(totalBooks / Number(size || this.pageSize))
+  //       );
+  //       this.totalPages.set(calculatedTotalPages);
+
+  //       const offsetVal = Number(data?.offset ?? (page - 1) * size);
+  //       const currentPageNum = Number.isFinite(offsetVal)
+  //         ? Math.floor(offsetVal / Number(size || this.pageSize)) + 1
+  //         : page;
+  //       this.currentPage.set(currentPageNum);
+  //     });
+  // }
+  loadBooks(page: number = 1, size: number = 10, title?: string) {
+    const borrowedCached = this.borrowedBooks().length > 0;
+
+    forkJoin({
+      booksResponse: this.bookService.getBooks(page, size, title).pipe(
+        catchError((err: HttpErrorResponse) => {
           console.error('Error loading books:', err);
           return of({ data: { books: [], total: 0, offset: 0 } });
         })
-      )
-      .subscribe((response) => {
-        const data = response.data;
+      ),
+      borrowedResponse: borrowedCached
+        ? of({ data: this.borrowedBooks() })
+        : this.borrowService.getMy(0, 1000).pipe(
+            catchError((err: HttpErrorResponse) => {
+              console.error('Error loading borrowed books:', err);
+              return of({ data: [] });
+            })
+          ),
+    }).subscribe(({ booksResponse, borrowedResponse }) => {
+      const books = booksResponse.data.books || [];
+      const borrowed: BorrowRequests[] = borrowedResponse.data.borrowRecords || [];
 
-        this.books.set(data?.books || []);
-        const totalBooks = Number(data?.total ?? 0);
-        const calculatedTotalPages = Math.max(
-          1,
-          Math.ceil(totalBooks / Number(size || this.pageSize))
+      // Cache borrowed books if not already cached
+      if (!borrowedCached)
+        this.borrowedBooks.set(
+          borrowed.filter(
+            (b) => b.status === 'approved' || b.status === 'late' || b.status === 'pending'
+          )
         );
-        this.totalPages.set(calculatedTotalPages);
 
-        const offsetVal = Number(data?.offset ?? (page - 1) * size);
-        const currentPageNum = Number.isFinite(offsetVal)
-          ? Math.floor(offsetVal / Number(size || this.pageSize)) + 1
-          : page;
-        this.currentPage.set(currentPageNum);
+      // Filter out borrowed books with restricted statuses
+      const restrictedStatuses = ['Pending', 'Approved', 'Late'];
+      const filteredBooks = books.filter(
+        (book: any) =>
+          !borrowed.some((b) => b.bookId === book.id && restrictedStatuses.includes(b.status))
+      );
+
+      // Mark book availability
+      filteredBooks.forEach((book: any) => {
+        book.available = (book.copiesAvailable ?? book.copies) > 0;
       });
+
+      this.books.set(filteredBooks);
+
+      // handle pagination (same as before)
+      const totalBooks = Number(booksResponse.data?.total ?? 0);
+      const totalPages = Math.max(1, Math.ceil(totalBooks / size));
+      this.totalPages.set(totalPages);
+      this.currentPage.set(page);
+    });
   }
 
   onSearch(title?: string) {
@@ -119,8 +185,41 @@ export class BookListComponent {
   }
 
   borrowBook(bookId: number) {
-    if (!this.isLoggedIn()) {
+    if (!this.isLoggedIn()) return;
+    // toggle input
+    if (this.showDurationFor() === bookId) {
+      this.showDurationFor.set(null);
+    } else {
+      this.showDurationFor.set(bookId);
+      this.durationValue.set(1);
     }
-    console.log('Borrowing book:', bookId);
+  }
+
+  submitBorrow(bookId: number) {
+    const dur = Number(this.durationValue() ?? 0);
+    if (!dur || dur <= 0) return;
+    this.processingBorrow.set([...this.processingBorrow(), bookId]);
+    this.borrowService.borrowRequest(bookId, dur).subscribe({
+      next: (res) => {
+        const newBorrow: BorrowRequests = res.data; // expect backend to return full borrow request object
+
+        // Hide duration field and mark processing as done
+        this.showDurationFor.set(null);
+        this.processingBorrow.update((curr) => curr.filter((id) => id !== bookId));
+
+        // Add new borrowed book to cache
+        this.borrowedBooks.update((current) => [...current, newBorrow]);
+
+        // Remove borrowed book from available list (no need to reload all)
+        this.books.update((current) => current.filter((b) => b.id !== bookId));
+      },
+      error: () => {
+        this.processingBorrow.set(this.processingBorrow().filter((i) => i !== bookId));
+      },
+    });
+  }
+
+  isProcessing(bookId: number) {
+    return this.processingBorrow().includes(bookId);
   }
 }

@@ -60,4 +60,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./components/members/me-profile').then((m) => m.MeProfileComponent),
   },
+  {
+    path: 'borrowed-books',
+    loadComponent: () =>
+      import('./components/borrow-requests/borrow-requests').then((m) => m.BorrowRequestsComponent),
+  },
+  {
+    path: 'admin/books',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./components/admin-books/admin-books').then((m) => m.AdminBooksComponent),
+  },
 ];
