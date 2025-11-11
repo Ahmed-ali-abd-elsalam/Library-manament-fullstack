@@ -15,3 +15,20 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+
+  # RabbitMQ message broker
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP (backend connection)
+      - "15672:15672"   # Management dashboard
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:

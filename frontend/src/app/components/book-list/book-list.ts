@@ -1,3 +1,4 @@
+import { NotificationService } from './../../services/notification-service';
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookService } from '../../services/book-service';
@@ -26,6 +27,7 @@ export class BookListComponent {
   bookService = inject(BookService);
   authService = inject(AuthService);
   borrowService = inject(BorrowService);
+  NotifService = inject(NotificationService);
   borrowedBooks = signal<BorrowRequests[]>([]);
 
   isLoggedIn = computed(() => !!this.authService.getToken());
@@ -80,37 +82,6 @@ export class BookListComponent {
     this.loadBooks(1, this.pageSize);
   }
 
-  // loadBooks(page: number = 1, size: number = 10, title?: any) {
-  //   /* sets books , total pages , pagesize */
-  //   this.bookService
-  //     .getBooks(page, size, title)
-  //     .pipe(
-  //       catchError((err) => {
-  //         console.error('Error loading books:', err);
-  //         return of({ data: { books: [], total: 0, offset: 0 } });
-  //       })
-  //     )
-  //     .subscribe((response) => {
-  //       const data = response.data;
-
-  //       this.books.set(data?.books || []);
-  //       this.books().forEach((book) => {
-  //         book.available = (book.copiesAvailable ?? book.copies) > 0;
-  //       });
-  //       const totalBooks = Number(data?.total ?? 0);
-  //       const calculatedTotalPages = Math.max(
-  //         1,
-  //         Math.ceil(totalBooks / Number(size || this.pageSize))
-  //       );
-  //       this.totalPages.set(calculatedTotalPages);
-
-  //       const offsetVal = Number(data?.offset ?? (page - 1) * size);
-  //       const currentPageNum = Number.isFinite(offsetVal)
-  //         ? Math.floor(offsetVal / Number(size || this.pageSize)) + 1
-  //         : page;
-  //       this.currentPage.set(currentPageNum);
-  //     });
-  // }
   loadBooks(page: number = 1, size: number = 10, title?: string) {
     const borrowedCached = this.borrowedBooks().length > 0;
 

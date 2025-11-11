@@ -1,7 +1,10 @@
-﻿using Application.DTOs;
+﻿using Application.Common;
+using Application.DTOs;
 using Application.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Presentation.Hubs;
 using System.Security.Claims;
 
 namespace Presentation.Controllers
@@ -11,10 +14,12 @@ namespace Presentation.Controllers
     public class MemberController : ControllerBase
     {
         private readonly IMemberService memberService;
+        private readonly IHubContext<NotificationHub, INotificationClient> hubContext;
 
-        public MemberController(IMemberService memberService)
+        public MemberController(IMemberService memberService, IHubContext<NotificationHub, INotificationClient> hubContext)
         {
             this.memberService = memberService;
+            this.hubContext = hubContext;
         }
 
         [HttpGet]
@@ -46,5 +51,16 @@ namespace Presentation.Controllers
             var memberResult = await memberService.GetMember(Email);
             return memberResult.IsSuccess ? Ok(memberResult) : NotFound(memberResult);
         }
+
+        [HttpGet("test")]
+        [Authorize]
+        public async Task testSginalR()
+        {
+            string Email = User.FindFirst(ClaimTypes.Email).Value;
+            await hubContext.Clients.User(User.FindFirst("Id").Value).ReceiveUserNotification($"Test Message for logged In User {Email}");
+            await hubContext.Clients.All.ReceiveAdminNotification("Test Message for Admin");
+            await hubContext.Clients.All.ReceiveUserNotification("Test Message for User");
+        }
+
     }
 }

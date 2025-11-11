@@ -7,9 +7,12 @@ using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Presentation.Hubs;
 using Presentation.MiddleWares;
+using Presentation.Services;
 using Serilog;
 //using Serilog.Enrichers.ClientInfo;
 using System.Text;
@@ -74,6 +77,22 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSecret)),
         ValidateIssuerSigningKey = true,
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) &&
+                path.StartsWithSegments("/notifyHub"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
 //if (builder.Environment.IsProduction())
@@ -88,6 +107,7 @@ builder.Services.AddFluentEmail(builder.Configuration["Email:SenderEmail"], buil
 .AddSmtpSender(builder.Configuration["Email:Host"], builder.Configuration.GetValue<int>("Email:Port"));
 //}
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordsRepository>();
 builder.Services.AddScoped<IBorrowRecordService, BorrowRecordService>();
@@ -99,6 +119,7 @@ builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 builder.Services.AddScoped<LinkFactory>();
 builder.Host.UseSerilog();
 builder.Services.AddCors(options =>
@@ -124,6 +145,7 @@ builder.Services.AddProblemDetails(configure =>
     };
 }
 );
+builder.Services.AddSignalR();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -185,6 +207,6 @@ app.UseAuthorization();
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
-
+app.MapHub<NotificationHub>("/notifyHub").RequireAuthorization();
 app.MapControllers();
 app.Run();

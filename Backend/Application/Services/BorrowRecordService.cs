@@ -14,13 +14,16 @@ namespace Application.Services
         private readonly IBookRepository _bookrepository;
         private readonly IMemberRepository _memberrepository;
         private readonly IUnitOfWork unitOfWork;
+        private readonly INotificationService _notifier;
 
-        public BorrowRecordService(IBorrowRecordRepository repository, IBookRepository bookrepository, IMemberRepository memberrepository, IUnitOfWork unitOfWork)
+
+        public BorrowRecordService(IBorrowRecordRepository repository, IBookRepository bookrepository, IMemberRepository memberrepository, IUnitOfWork unitOfWork, INotificationService notifier)
         {
             _repository = repository;
             _bookrepository = bookrepository;
             _memberrepository = memberrepository;
             this.unitOfWork = unitOfWork;
+            _notifier = notifier;
         }
 
         public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, ClaimsPrincipal User, int borrowDuration)
@@ -45,7 +48,7 @@ namespace Application.Services
                 borrowDuration = borrowDuration
             });
             await unitOfWork.SaveChangesAsync();
-            //TODO  Notify Admin
+            await _notifier.SendToAdminsAsync("a new Borrow Request Recieved");
             return borrowRecord.BorrowRecordtoDto();
         }
         public async Task<Result<BorrowRecordResponseDto>> ReturnBook(int bookID, string userId)
@@ -143,6 +146,7 @@ namespace Application.Services
                 await _bookrepository.UpdateBookAsync(borrowRecord.BookId, book);
                 //TODO notify User
             }
+            await _notifier.SendToUserAsync(borrowRecord.MemberId, $"your borrowRequest was {status}");
             borrowRecord.Status = newStatus;
             await _repository.editBorrowRecord(id, borrowRecord);
             await unitOfWork.SaveChangesAsync();

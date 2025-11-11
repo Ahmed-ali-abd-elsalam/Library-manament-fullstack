@@ -1,0 +1,7 @@
+<div class="toast-stack">
+  <app-notification-item
+    *ngFor="let n of notifications(); trackBy: trackById"
+    [notification]="n"
+    (dismiss)="remove(n.id)"
+  />
+</div>
