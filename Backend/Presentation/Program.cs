@@ -1,3 +1,4 @@
+using Application.BackgroundTask;
 using Application.IRepository;
 using Application.IService;
 using Application.Services;
@@ -120,6 +121,7 @@ builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
+builder.Services.AddHostedService<BackgroundTask>();
 builder.Services.AddScoped<LinkFactory>();
 builder.Host.UseSerilog();
 builder.Services.AddCors(options =>
