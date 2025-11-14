@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { toDateOnlyString } from '../Utils/date-only.util';
 
 interface SearchQuery {
   Title?: string;
@@ -39,17 +40,21 @@ export class BookService {
     return this.http.get<any>(this.baseUrl, { params });
   }
 
-  BorrowBook(bookId: number) {
-    // TODO
-  }
-
   createBook(payload: BookPayload) {
     const url = `${this.baseUrl}/add`;
+    payload = {
+      ...payload,
+      publishedYear: toDateOnlyString(payload.publishedYear),
+    };
     return this.http.post<any>(url, payload);
   }
 
   updateBook(id: string | number, payload: Partial<BookPayload>) {
     const url = `${this.baseUrl}/${encodeURIComponent(String(id))}`;
+    payload = {
+      ...payload,
+      publishedYear: toDateOnlyString(payload.publishedYear ? payload.publishedYear : ''),
+    };
     return this.http.put<any>(url, payload);
   }
 

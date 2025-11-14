@@ -35,6 +35,10 @@ namespace Infrastructure.Repositories
         {
             return await _context.BorrowRecords.Include(Br => Br.Member).Include(Br => Br.Book).OrderBy(BR => BR.BookId).OrderBy(Br => Br.Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
         }
+        public async Task<ICollection<BorrowRecord>> GetLateBorrowRecordsAsync()
+        {
+            return await _context.BorrowRecords.OrderBy(BR => BR.BookId).OrderByDescending(Br => Br.Id).Where(BR => (BR.ReturnDate <= DateOnly.FromDateTime(DateTime.UtcNow)) && (BR.Status == borrowStatus.Approved)).ToListAsync();
+        }
         public async Task<ICollection<BorrowRecord>> GetBorrowRecordsAsync(string Id, int offset, int pagesize)
         {
             return await _context.BorrowRecords.Include(Br => Br.Member).Include(Br => Br.Book).OrderBy(BR => BR.BookId).OrderBy(Br => Br.Id).Where(br => br.MemberId == Id).Skip(offset * pagesize).Take(pagesize).ToListAsync();
@@ -44,13 +48,7 @@ namespace Infrastructure.Repositories
             await _context.BorrowRecords.AddAsync(borrowRecord);
             return borrowRecord;
         }
-        //Refactor
-        //public async Task<BorrowRecord> ReturnBookAsync(int borrowRecordId, DateOnly returnDate)
-        //{
-        //    BorrowRecord borrowRecord = await _context.BorrowRecords.FirstOrDefaultAsync(BR => BR.Id == borrowRecordId);
-        //    borrowRecord.ReturnDate = returnDate;
-        //    return borrowRecord;
-        //}
+
 
         public Task<int> getTotalCountAsync(string MemberId = "")
         {

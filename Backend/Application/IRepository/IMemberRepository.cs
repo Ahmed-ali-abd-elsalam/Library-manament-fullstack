@@ -1,10 +1,5 @@
 ﻿using Application.DTOs;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.IRepository
 {
@@ -19,5 +14,7 @@ namespace Application.IRepository
         public Task<Member?> GetMemberAsyncByEmail(string Email);
         public Task<bool> editMemberAsync(string Email, Member newMember);
         public Task<Member> AddMemberAsync(Member member);
+        Task UpdateMemberLateReturns(Dictionary<string, int> lateCountMap);
+
     }
 }

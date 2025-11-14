@@ -33,10 +33,10 @@ namespace Presentation.Controllers
             return booksResult.IsSuccess ? Ok(booksResult) : NotFound(booksResult);
         }
 
-        [HttpPost("/api/books/add")]
+        [HttpPost("add")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(statusCode: 200, type: typeof(BookResponseDto))]
-        public async Task<IActionResult> AddBook([FromBody] BookDto bookDto)
+        public async Task<IActionResult> AddBook(BookDto bookDto)
 
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);

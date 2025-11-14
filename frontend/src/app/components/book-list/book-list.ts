@@ -114,18 +114,21 @@ export class BookListComponent {
 
       // Filter out borrowed books with restricted statuses
       const restrictedStatuses = ['Pending', 'Approved', 'Late'];
-      const filteredBooks = books.filter(
-        (book: any) =>
-          !borrowed.some((b) => b.bookId === book.id && restrictedStatuses.includes(b.status))
-      );
+      const updatedBooks = books.map((book: any) => {
+        const isBorrowed = borrowed.some(
+          (b) => b.bookId === book.id && restrictedStatuses.includes(b.status)
+        );
 
-      // Mark book availability
-      filteredBooks.forEach((book: any) => {
-        book.available = (book.copiesAvailable ?? book.copies) > 0;
+        // available only if has copies AND not borrowed with restricted status
+        const isAvailable = !isBorrowed && (book.copiesAvailable ?? book.copies) > 0;
+
+        return {
+          ...book,
+          available: isAvailable,
+        };
       });
 
-      this.books.set(filteredBooks);
-
+      this.books.set(updatedBooks);
       // handle pagination (same as before)
       const totalBooks = Number(booksResponse.data?.total ?? 0);
       const totalPages = Math.max(1, Math.ceil(totalBooks / size));
@@ -154,9 +157,14 @@ export class BookListComponent {
     this.loadBooks(1, this.pageSize);
     this.currentPage.set(1);
   }
+  isBorrowed(bookId: number): boolean {
+    return this.borrowedBooks().some((b) => b.bookId === bookId);
+  }
 
+  // Update the borrowBook method to prevent borrowing already borrowed books
   borrowBook(bookId: number) {
-    if (!this.isLoggedIn()) return;
+    if (!this.isLoggedIn() || this.isBorrowed(bookId)) return;
+
     // toggle input
     if (this.showDurationFor() === bookId) {
       this.showDurationFor.set(null);

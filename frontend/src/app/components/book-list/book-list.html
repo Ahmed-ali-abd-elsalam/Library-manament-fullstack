@@ -30,6 +30,7 @@
       <div class="column-year">{{ book.publishedYear }}</div>
       @if (isLoggedIn() && !isAdmin()) {
       <div class="column-action">
+        @if (!isBorrowed(book.id)) {
         <div *ngIf="showDurationFor() !== book.id && book.available">
           <button class="borrow-btn" (click)="borrowBook(book.id)">Borrow</button>
         </div>
@@ -51,44 +52,47 @@
           </button>
           <button class="btn" (click)="borrowBook(book.id)">Cancel</button>
         </div>
+        } @else {
+        <span class="borrowed-label">Borrowed</span>
+        }
       </div>
       }
     </div>
     }
-  </div>
 
-  <div class="pagination-container">
-    <div class="page-numbers">
-      @for (page of visiblePages(); track page) {
-      <span class="page-number" [class.active]="page === currentPage()" (click)="goToPage(page)">
-        {{ page }}
-      </span>
-      }
-    </div>
+    <div class="pagination-container">
+      <div class="page-numbers">
+        @for (page of visiblePages(); track page) {
+        <span class="page-number" [class.active]="page === currentPage()" (click)="goToPage(page)">
+          {{ page }}
+        </span>
+        }
+      </div>
 
-    <div class="page-size-control">
-      <label for="pageSizeSelect" class="filter-item">
-        <span class="filter-label">Page size</span>
-        <select
-          id="pageSizeSelect"
-          class="page-size-select"
-          [(ngModel)]="pageSize"
-          (change)="onPageSizeChange()"
-        >
-          <option [value]="5">5</option>
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="50">50</option>
-        </select>
-      </label>
+      <div class="page-size-control">
+        <label for="pageSizeSelect" class="filter-item">
+          <span class="filter-label">Page size</span>
+          <select
+            id="pageSizeSelect"
+            class="page-size-select"
+            [(ngModel)]="pageSize"
+            (change)="onPageSizeChange()"
+          >
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </label>
 
-      <!-- <span class="page-size-label">size</span>
+        <!-- <span class="page-size-label">size</span>
       <select class="page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
         <option [value]="5">5</option>
         <option [value]="10">10</option>
         <option [value]="20">20</option>
         <option [value]="50">50</option>
       </select> -->
+      </div>
     </div>
   </div>
 </div>

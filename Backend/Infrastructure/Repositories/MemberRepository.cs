@@ -78,5 +78,17 @@ namespace Infrastructure.Repositories
                 query = query.Where(book => book.PhoneNumber == memberFilter.PhoneNumber);
             return await query.CountAsync();
         }
+
+        public async Task UpdateMemberLateReturns(Dictionary<string, int> lateCountMap)
+        {
+            foreach (var entry in lateCountMap)
+            {
+                await _context.Members
+                    .Where(m => m.Id == entry.Key)
+                    .ExecuteUpdateAsync(setters =>
+                        setters.SetProperty(m => m.LateReturns, m => entry.Value)
+                    );
+            }
+        }
     }
 }
