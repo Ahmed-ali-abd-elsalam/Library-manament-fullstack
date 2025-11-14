@@ -2,13 +2,16 @@
   <h1 class="books-title">Books</h1>
 
   <div class="search-container">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="Search books..."
-      [(ngModel)]="searchQuery"
-      (input)="onSearch()"
-    />
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search books..."
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+      />
+      <button class="search-btn" (click)="onSearch()">Search</button>
+    </div>
   </div>
 
   <div class="book-table-container">
@@ -22,7 +25,7 @@
       }
     </div>
 
-    @for (book of filteredBooks(); track book.id) {
+    @for (book of books(); track book.id) {
     <div class="book-row" [class.has-action]="isLoggedIn() && !isAdmin()">
       <div class="column-title">{{ book.title }}</div>
       <div class="column-author">{{ book.author }}</div>
