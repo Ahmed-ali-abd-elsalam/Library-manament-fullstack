@@ -46,23 +46,21 @@ namespace Application.BackgroundTask
             Dictionary<string, int> lateCounts = [];
             var lateRecords = await borrowRecordRepository.GetLateBorrowRecordsAsync();
 
-            foreach (var record in lateRecords)
-            {
-                if (!lateCounts.ContainsKey(record.MemberId))
-                    lateCounts[record.MemberId] = 0;
-                lateCounts[record.MemberId]++;
-            }
-
             if (lateCounts.Count > 0)
             {
                 await memberRepository.UpdateMemberLateReturns(lateCounts);
             }
+
+            await borrowRecordRepository.MarkRecordsAsLateAsync(
+                lateRecords.Select(r => r.Id).ToList()
+            );
+
             await unitOfWork.SaveChangesAsync();
             Log.Information(
-                "Late return counters updated at {Time}. {Count} members affected",
-                DateTime.Now,
-                lateCounts.Count
-            );
+                    "Late return counters updated at {Time}. {Count} members affected",
+                    DateTime.Now,
+                    lateCounts.Count
+                );
         }
     }
 }

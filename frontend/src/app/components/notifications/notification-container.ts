@@ -1,4 +1,5 @@
-import { Component, inject, OnDestroy, OnInit, signal, computed } from '@angular/core';
+// notification-container.component.ts
+import { Component, inject, OnDestroy, OnInit, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../services/notification-service';
 import { AuthService } from '../../services/auth.service';
@@ -16,30 +17,34 @@ export class NotificationContainerComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
 
   notifications = signal<ToastNotification[]>([]);
-
-  // helpers
   private nextId = 1;
+
   private cleanupFns: Array<() => void> = [];
 
   ngOnInit(): void {
-    this.notif.startConnection();
+    // Reactively watch for authentication
+    effect(() => {
+      const loggedIn = this.auth.isAuthenticated();
 
-    // Subscribe to both channels; filter by role
-    const isAdmin = this.auth.isAdmin();
+      if (loggedIn) {
+        this.notif.startConnection();
 
-    const adminHandler = (message: string) => {
-      if (isAdmin) this.enqueue(message, 10000);
-    };
-    const userHandler = (message: string) => {
-      if (!isAdmin) this.enqueue(message, 10000);
-    };
+        const isAdmin = this.auth.isAdmin();
 
-    this.notif.listenToAdminNotifications(adminHandler);
-    this.notif.listenToUserNotifications(userHandler);
+        const adminHandler = (msg: string) => {
+          if (isAdmin) this.enqueue(msg, 10000);
+        };
+        const userHandler = (msg: string) => {
+          if (!isAdmin) this.enqueue(msg, 10000);
+        };
 
-    // store cleanup (SignalR off isn't exposed here, but if added later we can unhook)
-    this.cleanupFns.push(() => {
-      // noop for now
+        this.notif.listenToAdminNotifications(adminHandler);
+        this.notif.listenToUserNotifications(userHandler);
+
+        this.cleanupFns.push(() => {
+          // future unsubscribe if needed
+        });
+      }
     });
   }
 
@@ -55,7 +60,6 @@ export class NotificationContainerComponent implements OnInit, OnDestroy {
       durationMs,
       createdAt: Date.now(),
     };
-    // newest at the bottom (container is column-reverse)
     this.notifications.update((curr) => [item, ...curr]);
   }
 

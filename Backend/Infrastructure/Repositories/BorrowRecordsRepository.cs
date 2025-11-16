@@ -1,6 +1,7 @@
 ﻿using Application.IRepository;
 using Domain.Entities;
 using Infrastructure.Data;
+using Infrastructure.Migrations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
@@ -65,5 +66,14 @@ namespace Infrastructure.Repositories
             return borrowRecord;
 
         }
+        public async Task MarkRecordsAsLateAsync(List<int> recordIds)
+        {
+            await _context.BorrowRecords
+                .Where(r => recordIds.Contains(r.Id))
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Status, r => borrowStatus.Late)
+                );
+        }
+
     }
 }

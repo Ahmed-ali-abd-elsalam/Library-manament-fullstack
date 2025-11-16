@@ -14,6 +14,8 @@ namespace Application.IRepository
         Task<BorrowRecord> BorrowBookAsync(BorrowRecord borrowRecord);
         Task<BorrowRecord> editBorrowRecord(int id, BorrowRecord newBorrowRecord);
         Task<ICollection<BorrowRecord>> GetLateBorrowRecordsAsync();
+        Task MarkRecordsAsLateAsync(List<int> recordIds);
+
 
 
     }

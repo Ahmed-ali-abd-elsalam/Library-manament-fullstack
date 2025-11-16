@@ -1,5 +1,7 @@
+// notification-service.ts
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -9,10 +11,10 @@ export class NotificationService {
 
   startConnection() {
     if (this.started) return;
-    const token = localStorage.getItem('access_token'); // or from a service
+
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl('https://localhost:7205/notifyHub', {
-        accessTokenFactory: () => token ?? '',
+        withCredentials: true,
       })
       .withAutomaticReconnect()
       .build();
@@ -21,8 +23,9 @@ export class NotificationService {
       .start()
       .then(() => {
         this.started = true;
+        console.log('%cSignalR Connected', 'color: green');
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error('SignalR error:', err));
   }
 
   listenToAdminNotifications(callback: (message: string) => void) {

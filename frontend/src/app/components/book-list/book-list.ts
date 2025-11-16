@@ -34,11 +34,10 @@ export class BookListComponent {
   isAdmin() {
     return this.authService.isAdmin();
   }
+
   filteredBooks = computed(() => {
     const query = this.searchQuery.toLowerCase().trim();
-    if (!query) {
-      return this.books();
-    }
+    if (!query) return this.books();
     return this.books().filter(
       (book) =>
         book.title.toLowerCase().includes(query) ||
@@ -47,7 +46,7 @@ export class BookListComponent {
     );
   });
 
-  // local UI state for showing duration input and processing
+  // borrow UI helpers
   showDurationFor = signal<number | null>(null);
   durationValue = signal<number | null>(2);
   processingBorrow = signal<number[]>([]);
@@ -58,9 +57,7 @@ export class BookListComponent {
     const pages: number[] = [];
 
     if (total <= 7) {
-      for (let i = 1; i <= total; i++) {
-        pages.push(i);
-      }
+      for (let i = 1; i <= total; i++) pages.push(i);
     } else {
       if (current <= 4) {
         for (let i = 1; i <= 5; i++) pages.push(i);
@@ -74,7 +71,6 @@ export class BookListComponent {
         pages.push(total);
       }
     }
-
     return pages;
   });
 
@@ -84,52 +80,62 @@ export class BookListComponent {
 
   loadBooks(page: number = 1, size: number = 10, title?: string) {
     const borrowedCached = this.borrowedBooks().length > 0;
+    const userLoggedIn = this.isLoggedIn();
 
     forkJoin({
+      // Books list
       booksResponse: this.bookService.getBooks(page, size, title).pipe(
         catchError((err: HttpErrorResponse) => {
           console.error('Error loading books:', err);
           return of({ data: { books: [], total: 0, offset: 0 } });
         })
       ),
-      borrowedResponse: borrowedCached
-        ? of({ data: this.borrowedBooks() })
-        : this.borrowService.getMy(0, 1000).pipe(
-            catchError((err: HttpErrorResponse) => {
-              console.error('Error loading borrowed books:', err);
-              return of({ data: [] });
-            })
-          ),
+
+      // Borrowed list → ONLY CALL BACKEND IF LOGGED IN
+      borrowedResponse:
+        !userLoggedIn
+          ? of({ data: { borrowRecords: [] } })
+          : borrowedCached
+          ? of({ data: this.borrowedBooks() })
+          : this.borrowService.getMy(0, 1000).pipe(
+              catchError((err: HttpErrorResponse) => {
+                console.error('Error loading borrowed books:', err);
+                return of({ data: [] });
+              })
+            ),
     }).subscribe(({ booksResponse, borrowedResponse }) => {
       const books = booksResponse.data.books || [];
       const borrowed: BorrowRequests[] = borrowedResponse.data.borrowRecords || [];
 
-      // Cache borrowed books if not already cached
-      if (!borrowedCached)
+      // Cache borrowed books if user logged in and not already cached
+      if (userLoggedIn && !borrowedCached) {
         this.borrowedBooks.set(
           borrowed.filter(
-            (b) => b.status === 'approved' || b.status === 'late' || b.status === 'pending'
+            (b) =>
+              b.status === 'approved' ||
+              b.status === 'late' ||
+              b.status === 'pending'
           )
         );
+      }
 
-      // Filter out borrowed books with restricted statuses
+      // Determine available books
       const restrictedStatuses = ['Pending', 'Approved', 'Late'];
       const updatedBooks = books.map((book: any) => {
-        const isBorrowed = borrowed.some(
-          (b) => b.bookId === book.id && restrictedStatuses.includes(b.status)
-        );
+        const isBorrowed =
+          userLoggedIn &&
+          borrowed.some(
+            (b) => b.bookId === book.id && restrictedStatuses.includes(b.status)
+          );
 
-        // available only if has copies AND not borrowed with restricted status
-        const isAvailable = !isBorrowed && (book.copiesAvailable ?? book.copies) > 0;
+        const isAvailable =
+          !isBorrowed && (book.copiesAvailable ?? book.copies) > 0;
 
-        return {
-          ...book,
-          available: isAvailable,
-        };
+        return { ...book, available: isAvailable };
       });
 
       this.books.set(updatedBooks);
-      // handle pagination (same as before)
+
       const totalBooks = Number(booksResponse.data?.total ?? 0);
       const totalPages = Math.max(1, Math.ceil(totalBooks / size));
       this.totalPages.set(totalPages);
@@ -144,28 +150,25 @@ export class BookListComponent {
   }
 
   goToPage(page: number) {
-    if (page != this.currentPage() && page <= this.totalPages()) {
+    if (page !== this.currentPage() && page <= this.totalPages()) {
       this.currentPage.set(page);
       this.loadBooks(page, this.pageSize);
     }
   }
 
   onPageSizeChange() {
-    // ensure pageSize is numeric (ngModel may pass string)
     this.pageSize = Number(this.pageSize) || 5;
-    // reload starting from page 1 with the new size
     this.loadBooks(1, this.pageSize);
     this.currentPage.set(1);
   }
+
   isBorrowed(bookId: number): boolean {
     return this.borrowedBooks().some((b) => b.bookId === bookId);
   }
 
-  // Update the borrowBook method to prevent borrowing already borrowed books
   borrowBook(bookId: number) {
     if (!this.isLoggedIn() || this.isBorrowed(bookId)) return;
 
-    // toggle input
     if (this.showDurationFor() === bookId) {
       this.showDurationFor.set(null);
     } else {
@@ -177,23 +180,53 @@ export class BookListComponent {
   submitBorrow(bookId: number) {
     const dur = Number(this.durationValue() ?? 0);
     if (!dur || dur <= 0) return;
+
     this.processingBorrow.set([...this.processingBorrow(), bookId]);
+
     this.borrowService.borrowRequest(bookId, dur).subscribe({
       next: (res) => {
-        const newBorrow: BorrowRequests = res.data; // expect backend to return full borrow request object
+        const newBorrow: BorrowRequests = res?.data;
 
-        // Hide duration field and mark processing as done
+        // Close duration input
         this.showDurationFor.set(null);
+
+        // Update processing state
         this.processingBorrow.update((curr) => curr.filter((id) => id !== bookId));
 
-        // Add new borrowed book to cache
-        this.borrowedBooks.update((current) => [...current, newBorrow]);
-
-        // Remove borrowed book from available list (no need to reload all)
-        this.books.update((current) => current.filter((b) => b.id !== bookId));
+        // Handle successful response with data
+        if (newBorrow && newBorrow.bookId) {
+          // Add newly borrowed book to cache
+          this.borrowedBooks.update((current) => [...current, newBorrow]);
+        }
+        // Handle response with null data but isSuccess true
+        else if (res?.isSuccess === true && res?.data === null) {
+          // Create a dummy borrow record to hide the button but keep the book visible
+          const dummyBorrow: BorrowRequests = {
+            id: 0,
+            bookId: bookId,
+            memberId: '',
+            status: 'approved',
+            borrowDate: new Date().toISOString(),
+            returnDate: null,
+            borrowDuration: dur,
+            bookTitle: '',
+            stockCopies: 0,
+            email: '',
+            lateReturns: 0,
+          };
+          this.borrowedBooks.update((current) => [...current, dummyBorrow]);
+        }
+        // Handle invalid/unexpected response
+        else {
+          console.error('Invalid borrow response:', res);
+        }
       },
-      error: () => {
-        this.processingBorrow.set(this.processingBorrow().filter((i) => i !== bookId));
+      error: (error) => {
+        console.error('Borrow request failed:', error);
+
+        // Clear UI state on error
+        this.showDurationFor.set(null);
+        this.processingBorrow.update((curr) => curr.filter((id) => id !== bookId));
       },
     });
   }
