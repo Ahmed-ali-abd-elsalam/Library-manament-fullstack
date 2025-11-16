@@ -4,6 +4,7 @@ using Application.IService;
 using Application.Services;
 using Domain.Entities;
 using Infrastructure.Data;
+using Infrastructure.RabbitMq;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -15,7 +16,6 @@ using Presentation.Hubs;
 using Presentation.MiddleWares;
 using Presentation.Services;
 using Serilog;
-//using Serilog.Enrichers.ClientInfo;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,14 +28,8 @@ string smtpPassword = builder.Configuration["smtpPassword"];
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
-//.Enrich.WithClientIp().Enrich.WithMachineName().Enrich.WithEnvironmentName()
 builder.Services.AddControllers();
 //builder.Services.AddScoped<GlobalTokenValidationFilter>();
-
-//builder.Services.AddControllers(options =>
-//{
-//    options.Filters.AddService<GlobalTokenValidationFilter>();
-//});
 
 builder.Services.AddLogging();
 builder.Services.AddRequestTimeouts(options =>
@@ -121,7 +115,10 @@ builder.Services.AddScoped<IUserTokenService, UserTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
+builder.Services.AddSingleton<IMessageQueueProducer, RabbitMqProducer>();
+builder.Services.AddSingleton<IMessageQueueConsumer, RabbitMqConsumer>();
 builder.Services.AddHostedService<BackgroundTask>();
+builder.Services.AddHostedService<BorrowRequestWorker>();
 builder.Services.AddScoped<LinkFactory>();
 builder.Host.UseSerilog();
 builder.Services.AddCors(options =>

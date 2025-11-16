@@ -9,6 +9,7 @@
         }
 
         public static Result<T> success(T? value) => new(true, value, null);
+        public static new Result<T> success() => new(true, default, null);
         public static implicit operator Result<T>(T? value) => success(value);
         public static implicit operator Result<T>(Error err) => new(false, default(T), err);
     }

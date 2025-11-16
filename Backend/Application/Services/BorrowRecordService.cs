@@ -15,15 +15,17 @@ namespace Application.Services
         private readonly IMemberRepository _memberrepository;
         private readonly IUnitOfWork unitOfWork;
         private readonly INotificationService _notifier;
+        private readonly IMessageQueueProducer _queueProducer;
 
 
-        public BorrowRecordService(IBorrowRecordRepository repository, IBookRepository bookrepository, IMemberRepository memberrepository, IUnitOfWork unitOfWork, INotificationService notifier)
+        public BorrowRecordService(IBorrowRecordRepository repository, IBookRepository bookrepository, IMemberRepository memberrepository, IUnitOfWork unitOfWork, INotificationService notifier, IMessageQueueProducer queueProducer)
         {
             _repository = repository;
             _bookrepository = bookrepository;
             _memberrepository = memberrepository;
             this.unitOfWork = unitOfWork;
             _notifier = notifier;
+            _queueProducer = queueProducer;
         }
 
         public async Task<Result<BorrowRecordResponseDto>> BorrowBook(int bookID, ClaimsPrincipal User, int borrowDuration)
@@ -38,18 +40,27 @@ namespace Application.Services
             if (!bookAvailable) return Errors.NotAvailable;
             Book book = await _bookrepository.GetBookAsync(bookID);
             Member user = await _memberrepository.GetMemberAsyncByEmail(userEmail);
-            borrowRecord = await _repository.BorrowBookAsync(new BorrowRecord
+            var message = new BorrowRequestMessage
             {
                 BookId = bookID,
-                MemberId = user.Id,
-                Member = user,
-                Book = book,
-                Status = borrowStatus.Pending,
-                borrowDuration = borrowDuration
-            });
-            await unitOfWork.SaveChangesAsync();
-            await _notifier.SendToAdminsAsync("a new Borrow Request Recieved");
-            return borrowRecord.BorrowRecordtoDto();
+                UserId = user.Id,
+                Email = userEmail,
+                Duration = borrowDuration
+            };
+
+            //borrowRecord = await _repository.BorrowBookAsync(new BorrowRecord
+            //{
+            //    BookId = bookID,
+            //    MemberId = user.Id,
+            //    Member = user,
+            //    Book = book,
+            //    Status = borrowStatus.Pending,
+            //    borrowDuration = borrowDuration
+            //});
+            //await unitOfWork.SaveChangesAsync();
+            await _queueProducer.PublishAsync("borrow_queue", message);
+            //await _notifier.SendToAdminsAsync("a new Borrow Request Recieved");
+            return Result<BorrowRecordResponseDto>.success();
         }
         public async Task<Result<BorrowRecordResponseDto>> ReturnBook(int bookID, string userId)
         {
