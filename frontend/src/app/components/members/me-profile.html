@@ -6,8 +6,10 @@
 
     <div class="detail-card" *ngIf="me() as m">
       <div class="detail-row" *ngFor="let k of keys(m)">
+        @if(k !== 'id'){
         <div class="detail-key">{{ k }}</div>
         <div class="detail-value">{{ m[k] }}</div>
+        }
       </div>
     </div>
 
@@ -27,6 +29,7 @@
             <div class="col-duration">Duration</div>
             <div class="col-stock">Stock</div>
             <div class="col-status">Status</div>
+            <div class="col-action">Action</div>
           </div>
           <div class="table-row" *ngFor="let r of borrowRequests()">
             <div class="col-title">{{ r.BookTitle || r.bookTitle }}</div>
@@ -35,6 +38,14 @@
             <div class="col-duration">{{ r.borrowDuration }}</div>
             <div class="col-stock">{{ r.StockCopies ?? r.stockCopies ?? r.Stock ?? '-' }}</div>
             <div class="col-status">{{ r.status }}</div>
+            <div class="col-action">
+              <button
+                *ngIf="r.status === 'Approved' || r.status === 'Late'"
+                class="btn btn-return"
+                (click)="returnBook(r.bookId || r.BookId)">
+                Return
+              </button>
+            </div>
           </div>
 
           <div class="table-footer">

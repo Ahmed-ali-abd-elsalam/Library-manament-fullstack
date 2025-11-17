@@ -30,4 +30,9 @@ export class BorrowService {
     // POST with empty body
     return this.http.post<any>(url, null, { params });
   }
+
+  returnBorrowRequest(bookId: number | string) {
+    const url = `${this.baseUrl}/return/${encodeURIComponent(String(bookId))}`;
+    return this.http.put<any>(url, null);
+  }
 }

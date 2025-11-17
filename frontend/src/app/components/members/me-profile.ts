@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MembersService } from '../../services/members.service';
 import { BorrowService } from '../../services/borrow.service';
+import { NotificationService } from '../../services/notification-service';
 
 @Component({
   selector: 'app-me-profile',
@@ -14,6 +15,7 @@ import { BorrowService } from '../../services/borrow.service';
 export class MeProfileComponent {
   private membersService = inject(MembersService);
   private borrowService = inject(BorrowService);
+  private notificationService = inject(NotificationService);
 
   loading = signal(false);
   error = signal('');
@@ -84,6 +86,20 @@ export class MeProfileComponent {
     } catch {
       return String(val);
     }
+  }
+
+  returnBook(bookId: number) {
+    this.borrowService.returnBorrowRequest(bookId).subscribe({
+      next: () => {
+        // this.notificationService.showSuccess('Book returned successfully');
+        this.pageIndex.set(0);
+        this.loadBorrowHistory();
+      },
+      error: (err) => {
+        const errorMsg = err?.error?.message || 'Failed to return book';
+        // this.notificationService.showError(errorMsg);
+      },
+    });
   }
 
   keys(obj: any): string[] {
